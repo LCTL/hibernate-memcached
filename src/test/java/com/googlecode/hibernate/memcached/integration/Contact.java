@@ -14,7 +14,7 @@ import java.util.Date;
  * @author Ray Krueger
  */
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Contact {
 
     @Id

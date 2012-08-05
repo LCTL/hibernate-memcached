@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.hibernate.cache.CacheException;
+import org.hibernate.cache.spi.NaturalIdRegion;
 import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.cache.spi.CacheDataDescription;
 import org.hibernate.cache.spi.CollectionRegion;
@@ -139,4 +140,12 @@ public class MemcachedRegionFactory implements RegionFactory {
         return caches.get(regionName) == null
                 ? new MemcachedCache(regionName, client) : caches.get(regionName);
     }
+
+	@Override
+	public NaturalIdRegion buildNaturalIdRegion(String regionName,
+			Properties properties, CacheDataDescription metadata)
+			throws CacheException {
+		// TODO Implement buildNaturalIdRegion
+		throw new UnsupportedOperationException("Can't generate NaturalIdRegion");
+	}
 }
