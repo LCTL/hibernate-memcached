@@ -14,42 +14,25 @@
  */
 package com.googlecode.hibernate.memcached.region;
 
-import com.googlecode.hibernate.memcached.Memcache;
-import com.googlecode.hibernate.memcached.MemcachedCache;
-import com.googlecode.hibernate.memcached.MemcachedCacheProvider;
 import java.util.Properties;
 
-import org.hibernate.cache.CacheException;
 import org.hibernate.cache.spi.TimestampsRegion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.googlecode.hibernate.memcached.Memcache;
+import com.googlecode.hibernate.memcached.MemcachedCache;
+import com.googlecode.hibernate.memcached.MemcachedCacheProvider;
 /**
  *
  * @author kcarlson
  */
-public class MemcachedTimestampsRegion extends AbstractMemcachedRegion implements TimestampsRegion {
+public class MemcachedTimestampsRegion extends AbstractGeneralDataRegion implements TimestampsRegion {
     
     private final Logger log = LoggerFactory.getLogger(MemcachedCacheProvider.class);
 
     public MemcachedTimestampsRegion(MemcachedCache cache, Properties properties, Memcache client) {
-        super(cache);
+        super(cache, properties, client);
     }
-
-    public Object get(Object key) throws CacheException {
-        return cache.get(key);
-    }
-
-    public void put(Object key, Object value) throws CacheException {
-        cache.put(key, value);
-    }
-
-    public void evict(Object key) throws CacheException {
-        cache.remove(key);
-    }
-
-    public void evictAll() throws CacheException {
-        cache.clear();
-    }
-
 
 }

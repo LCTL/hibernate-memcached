@@ -42,7 +42,7 @@ import org.hibernate.cfg.Settings;
  */
 public class MemcachedRegionFactory implements RegionFactory {
 
-    private final Logger log = LoggerFactory.getLogger(MemcachedCacheProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(MemcachedCacheProvider.class);
     
     private final ConcurrentMap<String, MemcachedCache> caches = new ConcurrentHashMap<String, MemcachedCache>();
     
@@ -98,6 +98,11 @@ public class MemcachedRegionFactory implements RegionFactory {
         return new MemcachedCollectionRegion(getCache(regionName), settings,
                         metadata, properties, client);
     }
+    
+    @Override
+    public NaturalIdRegion buildNaturalIdRegion(String regionName, Properties properties, CacheDataDescription metadata) throws CacheException {
+        throw new UnsupportedOperationException("Can't generate NaturalIdRegion");
+    }
 
     public QueryResultsRegion buildQueryResultsRegion(String regionName, Properties properties) throws CacheException {
         return new MemcachedQueryResultsRegion(getCache(regionName),
@@ -140,12 +145,4 @@ public class MemcachedRegionFactory implements RegionFactory {
         return caches.get(regionName) == null
                 ? new MemcachedCache(regionName, client) : caches.get(regionName);
     }
-
-	@Override
-	public NaturalIdRegion buildNaturalIdRegion(String regionName,
-			Properties properties, CacheDataDescription metadata)
-			throws CacheException {
-		// TODO Implement buildNaturalIdRegion
-		throw new UnsupportedOperationException("Can't generate NaturalIdRegion");
-	}
 }

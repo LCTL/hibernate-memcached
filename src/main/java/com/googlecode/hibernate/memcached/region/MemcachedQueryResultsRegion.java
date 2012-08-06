@@ -27,28 +27,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author kcarlson
  */
-public class MemcachedQueryResultsRegion extends AbstractMemcachedRegion implements QueryResultsRegion {
-    
+public class MemcachedQueryResultsRegion extends AbstractGeneralDataRegion implements QueryResultsRegion {
+
     private final Logger log = LoggerFactory.getLogger(MemcachedCacheProvider.class);
 
     public MemcachedQueryResultsRegion(MemcachedCache cache, Properties properties, Memcache client) {
-        super(cache);
-    }
-
-    public Object get(Object key) throws CacheException {
-        return cache.get(key);
-    }
-
-    public void put(Object key, Object value) throws CacheException {
-        cache.put(key, value);
-    }
-
-    public void evict(Object key) throws CacheException {
-        cache.remove(key);
-    }
-
-    public void evictAll() throws CacheException {
-        cache.clear();
+        super(cache, properties, client);
     }
 
 }

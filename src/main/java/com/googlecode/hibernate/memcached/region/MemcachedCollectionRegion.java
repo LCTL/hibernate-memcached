@@ -26,6 +26,7 @@ import org.hibernate.cache.spi.CacheDataDescription;
 import org.hibernate.cache.spi.CollectionRegion;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.access.CollectionRegionAccessStrategy;
+import org.hibernate.cache.spi.access.RegionAccessStrategy;
 import org.hibernate.cfg.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,52 +35,34 @@ import org.slf4j.LoggerFactory;
  *
  * @author kcarlson
  */
-public class MemcachedCollectionRegion extends AbstractMemcachedRegion implements CollectionRegion {
+public class MemcachedCollectionRegion
+    extends AbstractMemcachedTransactionalDataRegion implements CollectionRegion {
     
     private final Logger log = LoggerFactory.getLogger(MemcachedCollectionRegion.class);
-    private final CacheDataDescription metadata;
-    private final Settings settings;
 
-    public MemcachedCollectionRegion(MemcachedCache cache, Settings settings, CacheDataDescription metadata, Properties properties, Memcache client)
-    {
-        super(cache);
-        this.metadata = metadata;
-        this.settings = settings;
+    public MemcachedCollectionRegion(MemcachedCache cache, Settings settings,
+            CacheDataDescription metadata, Properties properties, Memcache client) {
+        super(cache, settings, metadata);
     }
 
-
-    public CollectionRegionAccessStrategy buildAccessStrategy(AccessType accessType) throws CacheException
-    {
-        if (AccessType.READ_ONLY.equals(accessType)) {
-            if (metadata.isMutable()) {
-                log.warn("read-only cache configured for mutable entity ["
-                                + getName() + "]");
-            }
-            return new ReadOnlyMemcachedCollectionRegionAccessStrategy(this ,
-                    settings);
-        } else if (AccessType.READ_WRITE.equals(accessType)) {
-            return new ReadWriteMemcachedCollectionRegionAccessStrategy(this ,
-                    settings);
-        } else if (AccessType.NONSTRICT_READ_WRITE.equals(accessType)) {
-            return new NonStrictReadWriteMemcachedCollectionRegionAccessStrategy(
-                    this , settings);
-        } else if (AccessType.TRANSACTIONAL.equals(accessType)) {
-            return new TransactionalMemcachedCollectionRegionAccessStrategy(
-                    this , cache, settings);
-        } else {
-            throw new IllegalArgumentException(
-                    "unrecognized access strategy type [" + accessType
-                            + "]");
-        }
+    public CollectionRegionAccessStrategy buildAccessStrategy(AccessType accessType) throws CacheException {
+        return (CollectionRegionAccessStrategy) super.buildAccessStrategy(accessType);
     }
 
-    public boolean isTransactionAware()
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public RegionAccessStrategy getReadOnlyRegionAccessStrategy(Settings settings) {
+        return new ReadOnlyMemcachedCollectionRegionAccessStrategy(this, settings);
     }
 
-    public CacheDataDescription getCacheDataDescription()
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public RegionAccessStrategy getReadWriteRegionAccessStrategy(Settings settings) {
+        return new ReadWriteMemcachedCollectionRegionAccessStrategy(this, settings);
     }
+
+    public RegionAccessStrategy getNonStrictReadWriteRegionAccessStrategy(Settings settings) {
+        return new NonStrictReadWriteMemcachedCollectionRegionAccessStrategy(this, settings);
+    }
+
+    public RegionAccessStrategy getTransactionalRegionAccessStrategy(Settings settings) {
+        return new TransactionalMemcachedCollectionRegionAccessStrategy(this, cache, settings);
+    }
+
 }
