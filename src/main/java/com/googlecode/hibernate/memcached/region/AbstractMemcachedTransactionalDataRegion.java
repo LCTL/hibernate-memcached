@@ -12,8 +12,9 @@ import org.slf4j.LoggerFactory;
 import com.googlecode.hibernate.memcached.MemcachedCache;
 import com.googlecode.hibernate.memcached.strategy.TransactionalDataRegionAccessStrategyFactory;
 
-public abstract class AbstractMemcachedTransactionalDataRegion extends AbstractMemcachedRegion
-    implements TransactionalDataRegion, TransactionalDataRegionAccessStrategyFactory {
+public abstract class AbstractMemcachedTransactionalDataRegion<S extends RegionAccessStrategy>
+    extends AbstractMemcachedRegion
+    implements TransactionalDataRegion, TransactionalDataRegionAccessStrategyFactory<S> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractMemcachedTransactionalDataRegion.class);
     
@@ -27,7 +28,7 @@ public abstract class AbstractMemcachedTransactionalDataRegion extends AbstractM
         this.settings = settings;
     }
     
-    public RegionAccessStrategy buildAccessStrategy(AccessType accessType) throws CacheException {
+    public S buildAccessStrategy(AccessType accessType) throws CacheException {
         
         switch(accessType) {
         case READ_ONLY:

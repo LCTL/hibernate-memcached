@@ -15,6 +15,15 @@
 package com.googlecode.hibernate.memcached.region;
 
 
+import java.util.Properties;
+
+import org.hibernate.cache.spi.CacheDataDescription;
+import org.hibernate.cache.spi.EntityRegion;
+import org.hibernate.cache.spi.access.EntityRegionAccessStrategy;
+import org.hibernate.cfg.Settings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.googlecode.hibernate.memcached.Memcache;
 import com.googlecode.hibernate.memcached.MemcachedCache;
 import com.googlecode.hibernate.memcached.MemcachedCacheProvider;
@@ -22,52 +31,38 @@ import com.googlecode.hibernate.memcached.strategy.NonStrictReadWriteMemcachedEn
 import com.googlecode.hibernate.memcached.strategy.ReadOnlyMemcachedEntityRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.ReadWriteMemcachedEntityRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.TransactionalMemcachedEntityRegionAccessStrategy;
-import java.util.Properties;
-import org.hibernate.cache.CacheException;
-import org.hibernate.cache.spi.CacheDataDescription;
-import org.hibernate.cache.spi.EntityRegion;
-import org.hibernate.cache.spi.access.AccessType;
-import org.hibernate.cache.spi.access.EntityRegionAccessStrategy;
-import org.hibernate.cache.spi.access.RegionAccessStrategy;
-import org.hibernate.cfg.Settings;
-import org.hibernate.engine.transaction.spi.AbstractTransactionImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 /**
  *
  * @author kcarlson
  */
 public class MemcachedEntityRegion
-    extends AbstractMemcachedTransactionalDataRegion implements EntityRegion {
+    extends AbstractMemcachedTransactionalDataRegion<EntityRegionAccessStrategy>
+    implements EntityRegion {
     
     private final Logger log = LoggerFactory.getLogger(MemcachedCacheProvider.class);
     
     public MemcachedEntityRegion(MemcachedCache cache, Settings settings, CacheDataDescription metadata, Properties properties, Memcache client) {
         super(cache, settings, metadata);
     }
-
-    public EntityRegionAccessStrategy buildAccessStrategy(AccessType accessType) throws CacheException {
-        return (EntityRegionAccessStrategy) super.buildAccessStrategy(accessType);
-    }
-
+    
     @Override
     public boolean isTransactionAware() {
         return true;
     }
 
-    public RegionAccessStrategy getReadOnlyRegionAccessStrategy(Settings settings) {
+    public EntityRegionAccessStrategy getReadOnlyRegionAccessStrategy(Settings settings) {
         return new ReadOnlyMemcachedEntityRegionAccessStrategy(this, settings);
     }
 
-    public RegionAccessStrategy getReadWriteRegionAccessStrategy(Settings settings) {
+    public EntityRegionAccessStrategy getReadWriteRegionAccessStrategy(Settings settings) {
         return new ReadWriteMemcachedEntityRegionAccessStrategy(this, settings);
     }
 
-    public RegionAccessStrategy getNonStrictReadWriteRegionAccessStrategy(Settings settings) {
+    public EntityRegionAccessStrategy getNonStrictReadWriteRegionAccessStrategy(Settings settings) {
         return new NonStrictReadWriteMemcachedEntityRegionAccessStrategy(this, settings);
     }
 
-    public RegionAccessStrategy getTransactionalRegionAccessStrategy(Settings settings) {
+    public EntityRegionAccessStrategy getTransactionalRegionAccessStrategy(Settings settings) {
         return new TransactionalMemcachedEntityRegionAccessStrategy(this, cache, settings);
     }
 

@@ -23,8 +23,8 @@ import org.hibernate.cfg.Settings;
  *
  * @author kcarlson
  */
-public abstract class AbstractMemcachedAccessStrategy<T extends AbstractMemcachedRegion>
-{
+public abstract class AbstractMemcachedAccessStrategy<T extends AbstractMemcachedRegion> {
+
     protected T region;
     private Settings settings;
     
@@ -33,8 +33,7 @@ public abstract class AbstractMemcachedAccessStrategy<T extends AbstractMemcache
         this.settings = settings;
     }
 
-    public boolean putFromLoad(Object key, Object value, long txTimestamp, Object version) throws CacheException
-    {
+    public boolean putFromLoad(Object key, Object value, long txTimestamp, Object version) throws CacheException {
         return putFromLoad(key, value, txTimestamp, version, settings.isMinimalPutsEnabled());
     }
 
@@ -42,33 +41,27 @@ public abstract class AbstractMemcachedAccessStrategy<T extends AbstractMemcache
                 long txTimestamp,Object version, boolean minimalPutOverride) throws CacheException;
 
 
-    public SoftLock lockRegion() throws CacheException
-    {
+    public SoftLock lockRegion() throws CacheException {
         return null;
     }
 
-    public void unlockRegion(SoftLock lock) throws CacheException
-    {
+    public void unlockRegion(SoftLock lock) throws CacheException {
         region.getCache().clear();
     }
 
-    public void remove(Object key) throws CacheException
-    {
-        
+    public void remove(Object key) throws CacheException {
+    
     }
 
-    public void removeAll() throws CacheException
-    {
+    public void removeAll() throws CacheException {
         region.getCache().clear();
     }
 
-    public void evict(Object key) throws CacheException
-    {
+    public void evict(Object key) throws CacheException {
         region.getCache().remove(key);
     }
 
-    public void evictAll() throws CacheException
-    {
+    public void evictAll() throws CacheException {
         region.getCache().clear();
     }
     
