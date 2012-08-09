@@ -14,9 +14,10 @@
  */
 package com.googlecode.hibernate.memcached.region;
 
-import com.googlecode.hibernate.memcached.Memcache;
 import com.googlecode.hibernate.memcached.MemcachedCache;
 import com.googlecode.hibernate.memcached.MemcachedCacheProvider;
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
+
 import java.util.Properties;
 import org.hibernate.cache.CacheException;
 import org.hibernate.cache.spi.QueryResultsRegion;
@@ -31,7 +32,7 @@ public class MemcachedQueryResultsRegion extends AbstractGeneralDataRegion imple
 
     private final Logger log = LoggerFactory.getLogger(MemcachedCacheProvider.class);
 
-    public MemcachedQueryResultsRegion(MemcachedCache cache, Properties properties, Memcache client) {
+    public MemcachedQueryResultsRegion(MemcachedCache cache, Properties properties, HibernateMemcachedClient client) {
         super(cache, properties, client);
     }
 

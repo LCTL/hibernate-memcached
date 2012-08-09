@@ -1,9 +1,12 @@
 package com.googlecode.hibernate.memcached
+
+import com.googlecode.hibernate.memcached.client.*;
+
 /**
  * DOCUMENT ME!
  * @author Ray Krueger
  */
-class MockMemcached implements Memcache {
+class MockMemcached implements HibernateMemcachedClient {
 
     def cache = [:]
 
@@ -13,6 +16,10 @@ class MockMemcached implements Memcache {
 
     public void set(String key, int cacheTimeSeconds, Object o) {
         cache[key] = o
+    }
+
+    public boolean add(String key, int exp, Object o) {
+        return false;
     }
 
     public void delete(String key) {
@@ -26,6 +33,10 @@ class MockMemcached implements Memcache {
         } else {
             cache[key] = counter
         }
+    }
+
+    public void decr(String key, int by, int startingValue) {
+        // implement
     }
 
     public void shutdown() {

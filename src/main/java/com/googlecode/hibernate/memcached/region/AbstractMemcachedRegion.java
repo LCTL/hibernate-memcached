@@ -15,6 +15,8 @@
 package com.googlecode.hibernate.memcached.region;
 
 import com.googlecode.hibernate.memcached.MemcachedCache;
+
+import java.util.HashMap;
 import java.util.Map;
 import org.hibernate.cache.CacheException;
 import org.hibernate.cache.spi.Region;
@@ -23,7 +25,7 @@ import org.hibernate.cache.spi.Region;
  *
  * @author kcarlson
  */
-public abstract class AbstractMemcachedRegion implements Region {
+public abstract class AbstractMemcachedRegion implements MemcachedRegion {
 
     protected MemcachedCache cache;
     
@@ -56,10 +58,11 @@ public abstract class AbstractMemcachedRegion implements Region {
     }
 
     public Map toMap() {
-        return null;
+        return new HashMap(0);
     }
 
     public long nextTimestamp() {
+        // why not keep in millis?
         return System.currentTimeMillis() / 100;
     }
 
@@ -67,10 +70,8 @@ public abstract class AbstractMemcachedRegion implements Region {
         return cache.getTimeout();
     }
     
-    public MemcachedCache getCache()
-    {
+    public MemcachedCache getCache() {
         return cache;
     }
-    
     
 }

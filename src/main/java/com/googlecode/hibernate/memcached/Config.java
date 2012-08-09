@@ -1,5 +1,8 @@
 package com.googlecode.hibernate.memcached;
 
+import com.googlecode.hibernate.memcached.client.spymemcached.SpyMemcacheClientFactory;
+import com.googlecode.hibernate.memcached.strategy.key.Sha1KeyStrategy;
+
 /**
  * DOCUMENT ME!
  *
@@ -29,7 +32,7 @@ public class Config {
     public static final int DEFAULT_CACHE_TIME_SECONDS = 300;
     public static final boolean DEFAULT_CLEAR_SUPPORTED = false;
     public static final boolean DEFAULT_DOGPILE_PREVENTION = false;
-    public static final String DEFAULT_MEMCACHE_CLIENT_FACTORY = "com.googlecode.hibernate.memcached.spymemcached.SpyMemcacheClientFactory";
+    public static final String DEFAULT_MEMCACHE_CLIENT_FACTORY = SpyMemcacheClientFactory.class.getName();
 
     private PropertiesHelper props;
     private static final int DEFAULT_DOGPILE_EXPIRATION_FACTOR = 2;

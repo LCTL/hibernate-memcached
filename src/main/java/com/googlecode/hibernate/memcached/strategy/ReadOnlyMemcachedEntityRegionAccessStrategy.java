@@ -14,91 +14,67 @@
  */
 package com.googlecode.hibernate.memcached.strategy;
 
-import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
 import org.hibernate.cache.CacheException;
+import org.hibernate.cache.spi.access.EntityRegionAccessStrategy;
 import org.hibernate.cache.spi.access.SoftLock;
 import org.hibernate.cfg.Settings;
+
+import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
 
 /**
  *
  * @author kcarlson
  */
-public class ReadOnlyMemcachedEntityRegionAccessStrategy extends AbstractEntityRegionAccessStrategy
-{
+public class ReadOnlyMemcachedEntityRegionAccessStrategy
+    extends AbstractNoLockMemcachedRegionAccessStrategy<MemcachedEntityRegion> 
+    implements EntityRegionAccessStrategy {
 
-    public ReadOnlyMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion aThis, Settings settings)
-    {
-        super(aThis, settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Object get(Object key, long txTimestamp) throws CacheException {
-        return region.getCache().get(key);
+    public ReadOnlyMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion region, Settings settings) {
+        super(region, settings);
     }
  
     /**
-     * {@inheritDoc}
+     * {@inheritDoc}</br>
+     * Data is only added to the cache when loaded from the database
+     * @return false, no change to the cache
+     * @see org.hibernate.cache.spi.access.RegionAccessStrategy#putFromLoad(Object, Object, long, Object, boolean)
      */
-    public boolean putFromLoad(Object key, Object value, long txTimestamp, Object version, boolean minimalPutOverride)
-            throws CacheException {
-        if (minimalPutOverride && region.getCache().get(key) != null) {
-            return false;
-        } else {
-            region.getCache().put(key, value);
-            return true;
-        }
+    @Override
+    public boolean afterInsert(Object key, Object value, Object version) throws CacheException {
+        return false;
     }
  
     /**
-     * Throws UnsupportedOperationException since this cache is read-only
-     *
-     * @throws UnsupportedOperationException always
+     * {@inheritDoc}</br>
+     * Data is only added to the cache when loaded from the database
+     * @return false, no change to the cache
+     * @see org.hibernate.cache.spi.access.RegionAccessStrategy#putFromLoad(Object, Object, long, Object, boolean)
      */
-    public SoftLock lockItem(Object key, Object version) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Can't write to a readonly object");
+    @Override
+    public boolean afterUpdate(Object key, Object value, Object currentVersion, Object previousVersion, SoftLock lock) {
+        return false;
     }
- 
+    
     /**
-     * A no-op since this cache is read-only
+     * {@inheritDoc}</br>
+     * Data is only added to the cache when loaded from the database
+     * @return false, no change to the cache
+     * @see org.hibernate.cache.spi.access.RegionAccessStrategy#putFromLoad(Object, Object, long, Object, boolean)
      */
-    public void unlockItem(Object key, SoftLock lock) throws CacheException {
-        //throw new UnsupportedOperationException("Can't write to a readonly object");
-    }
- 
-    /**
-     * This cache is asynchronous hence a no-op
-     */
+    @Override
     public boolean insert(Object key, Object value, Object version) throws CacheException {
         return false;
     }
  
     /**
-     * {@inheritDoc}
+     * {@inheritDoc}</br>
+     * Data is only added to the cache when loaded from the database
+     * @return false, no change to the cache
+     * @see org.hibernate.cache.spi.access.RegionAccessStrategy#putFromLoad(Object, Object, long, Object, boolean)
      */
-    public boolean afterInsert(Object key, Object value, Object version) throws CacheException {
-        region.getCache().put(key, value);
-        return true;
-    }
- 
-    /**
-     * Throws UnsupportedOperationException since this cache is read-only
-     *
-     * @throws UnsupportedOperationException always
-     */
-    public boolean update(Object key, Object value, Object currentVersion, Object previousVersion) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Can't write to a readonly object");
-    }
- 
-    /**
-     * Throws UnsupportedOperationException since this cache is read-only
-     *
-     * @throws UnsupportedOperationException always
-     */
-    public boolean afterUpdate(Object key, Object value, Object currentVersion, Object previousVersion, SoftLock lock)
-            throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Can't write to a readonly object");
+    @Override
+    public boolean update(Object key, Object value, Object currentVersion, Object previousVersion) {
+        return false;
     }
     
 }

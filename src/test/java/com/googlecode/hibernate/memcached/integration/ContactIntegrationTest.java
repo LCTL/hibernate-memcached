@@ -1,6 +1,8 @@
 package com.googlecode.hibernate.memcached.integration;
 
 import org.hibernate.Criteria;
+import org.hibernate.SessionFactory;
+
 import static org.hibernate.criterion.Restrictions.eq;
 
 import java.util.Calendar;
@@ -13,7 +15,6 @@ public class ContactIntegrationTest extends AbstractHibernateTestCase {
 
     @Override
     protected void setupInTransaction() {
-
         ray = new Contact();
         ray.setFirstName("Ray");
         ray.setLastName("Krueger");

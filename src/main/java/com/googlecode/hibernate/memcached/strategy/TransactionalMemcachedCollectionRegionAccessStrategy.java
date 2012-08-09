@@ -17,6 +17,7 @@ package com.googlecode.hibernate.memcached.strategy;
 import com.googlecode.hibernate.memcached.MemcachedCache;
 import com.googlecode.hibernate.memcached.region.MemcachedCollectionRegion;
 import org.hibernate.cache.CacheException;
+import org.hibernate.cache.spi.access.CollectionRegionAccessStrategy;
 import org.hibernate.cache.spi.access.SoftLock;
 import org.hibernate.cfg.Settings;
 
@@ -24,33 +25,39 @@ import org.hibernate.cfg.Settings;
  *
  * @author kcarlson
  */
-public class TransactionalMemcachedCollectionRegionAccessStrategy extends AbstractCollectionRegionAccessStrategy {
-    private final MemcachedCache cache;
+public class TransactionalMemcachedCollectionRegionAccessStrategy
+    extends AbstractMemcachedRegionAccessStrategy<MemcachedCollectionRegion> 
+    implements CollectionRegionAccessStrategy {
 
-    public TransactionalMemcachedCollectionRegionAccessStrategy(MemcachedCollectionRegion aThis, MemcachedCache cache, Settings settings) {
-        super(aThis, settings);
-        this.cache = cache;
+    public TransactionalMemcachedCollectionRegionAccessStrategy(MemcachedCollectionRegion region, MemcachedCache cache, Settings settings) {
+        super(region, settings);
+        throw new UnsupportedOperationException("TransactionalMemcachedCollectionRegionAccessStrategy not yet implemented");
+
     }
 
-    @Override
-    public boolean putFromLoad(Object key, Object value, long txTimestamp, Object version, boolean minimalPutOverride) throws CacheException {
-        if (minimalPutOverride && cache.get(key) != null) {
-            return false;
-        }
-        //OptimisticCache? versioning?
-        cache.put(key, value);
-        return true;
-    }
+	@Override
+	public Object get(Object key, long txTimestamp) throws CacheException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    public Object get(Object key, long txTimestamp) throws CacheException {
-        return cache.get(key);
-    }
+	@Override
+	public boolean putFromLoad(Object key, Object value, long txTimestamp,
+			Object version, boolean minimalPutOverride) throws CacheException {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
-    public SoftLock lockItem(Object key, Object version) throws CacheException {
-        return null;
-    }
+	@Override
+	public SoftLock lockItem(Object key, Object version) throws CacheException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    public void unlockItem(Object key, SoftLock lock) throws CacheException {
-    }
-    
+	@Override
+	public void unlockItem(Object key, SoftLock lock) throws CacheException {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

@@ -23,8 +23,8 @@ import org.hibernate.cfg.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.googlecode.hibernate.memcached.Memcache;
 import com.googlecode.hibernate.memcached.MemcachedCache;
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.strategy.NonStrictReadWriteMemcachedCollectionRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.ReadOnlyMemcachedCollectionRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.ReadWriteMemcachedCollectionRegionAccessStrategy;
@@ -41,7 +41,7 @@ public class MemcachedCollectionRegion
     private final Logger log = LoggerFactory.getLogger(MemcachedCollectionRegion.class);
 
     public MemcachedCollectionRegion(MemcachedCache cache, Settings settings,
-            CacheDataDescription metadata, Properties properties, Memcache client) {
+            CacheDataDescription metadata, Properties properties, HibernateMemcachedClient client) {
         super(cache, settings, metadata);
     }
 

@@ -1,4 +1,6 @@
 package com.googlecode.hibernate.memcached
+
+import com.googlecode.hibernate.memcached.strategy.key.*
 /**
  * DOCUMENT ME!
  * @author Ray Krueger

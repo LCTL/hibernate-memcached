@@ -18,6 +18,10 @@ import org.hibernate.cache.CacheException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
+import com.googlecode.hibernate.memcached.strategy.key.KeyStrategy;
+import com.googlecode.hibernate.memcached.strategy.key.Sha1KeyStrategy;
+
 import java.util.Map;
 
 /**
@@ -48,8 +52,10 @@ public class MemcachedCache {
 
     private final Logger log = LoggerFactory.getLogger(MemcachedCache.class);
 
+    private final String readLockKeyPrefix = "readLock";
+    private final String writeLockKeyPrefix = "writeLock";
     private final String regionName;
-    private final Memcache memcache;
+    private final HibernateMemcachedClient memcache;
     private final String clearIndexKey;
     private int cacheTimeSeconds = 300;
     private boolean clearSupported = false;
@@ -59,7 +65,7 @@ public class MemcachedCache {
 
     public static final Integer DOGPILE_TOKEN = 0;
 
-    public MemcachedCache(String regionName, Memcache memcachedClient) {
+    public MemcachedCache(String regionName, HibernateMemcachedClient memcachedClient) {
         this.regionName = (regionName != null) ? regionName : "default";
         this.memcache = memcachedClient;
         clearIndexKey = this.regionName.replaceAll("\\s", "") + ":index_key";
@@ -154,7 +160,15 @@ public class MemcachedCache {
     private String toKey(Object key) {
         return keyStrategy.toKey(regionName, getClearIndex(), key);
     }
+    
+    private String getReadLockKey(Object key) {
+        return keyStrategy.toKey(readLockKeyPrefix + ":" + regionName, getClearIndex(), key);
+    }
 
+    private String getWriteLockKey(Object key) {
+    	return keyStrategy.toKey(writeLockKeyPrefix + ":" + regionName, getClearIndex(), key);
+    }
+    
     public Object read(Object key) throws CacheException {
         return memcacheGet(key);
     }
@@ -193,6 +207,56 @@ public class MemcachedCache {
     }
 
     public void lock(Object key) throws CacheException {
+    }
+    
+    private void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } 
+    }
+    
+    public boolean acquireReadLock(Object key) {
+        boolean result = false;
+        String wKey = getWriteLockKey(key);
+        String rKey = getReadLockKey(key);
+        
+        // Add a counter of some kind?
+        while(!memcache.add(wKey, 60, 1)) { 
+            sleep(1000);
+        }
+
+        memcache.incr(rKey, 1, 0);
+        result = true;
+        memcache.delete(wKey); // only want to delete if still mine
+        return result;
+    }
+    
+    public boolean releaseReadLock(Object key) {
+        String rKey = getReadLockKey(key);
+        memcache.decr(rKey, 1, 0);
+        return true;
+    }
+    
+    public boolean acquireWriteLock(Object key) {
+        boolean result = false;
+        String wKey = getWriteLockKey(key);
+        String rKey = getReadLockKey(key);
+        while (!memcache.add(wKey, 60, 1)) {
+            sleep(1000);
+        }
+        result = true;
+        while (((Integer) memcache.get(rKey)) > 0) {
+            sleep(1000);
+        }
+        return result;
+    }
+    
+    public boolean releaseWriteLock(Object key) {
+        String wKey = getWriteLockKey(key);
+        memcache.delete(wKey);
+        return true;
     }
 
     public void unlock(Object key) throws CacheException {

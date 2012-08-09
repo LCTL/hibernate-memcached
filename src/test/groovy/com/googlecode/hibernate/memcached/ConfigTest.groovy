@@ -1,4 +1,7 @@
 package com.googlecode.hibernate.memcached
+
+import com.googlecode.hibernate.memcached.client.spymemcached.*;
+
 /**
  * DOCUMENT ME!
  * @author Ray Krueger
@@ -67,7 +70,7 @@ class ConfigTest extends BaseTestCase {
         Properties p = new Properties()
         Config config = newConfig(p)
         //test default
-        assertEquals "com.googlecode.hibernate.memcached.spymemcached.SpyMemcacheClientFactory",
+        assertEquals SpyMemcacheClientFactory.class.getName(),
                 config.getMemcachedClientFactoryName()
 
         p["hibernate.memcached.memcacheClientFactory"] = "blah"

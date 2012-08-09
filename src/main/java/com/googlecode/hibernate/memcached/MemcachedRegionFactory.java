@@ -14,26 +14,31 @@
  */
 package com.googlecode.hibernate.memcached;
 
-import com.googlecode.hibernate.memcached.region.MemcachedCollectionRegion;
-import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
-import com.googlecode.hibernate.memcached.region.MemcachedQueryResultsRegion;
-import com.googlecode.hibernate.memcached.region.MemcachedTimestampsRegion;
 import java.lang.reflect.Constructor;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.hibernate.cache.CacheException;
-import org.hibernate.cache.spi.NaturalIdRegion;
-import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.cache.spi.CacheDataDescription;
 import org.hibernate.cache.spi.CollectionRegion;
 import org.hibernate.cache.spi.EntityRegion;
+import org.hibernate.cache.spi.NaturalIdRegion;
 import org.hibernate.cache.spi.QueryResultsRegion;
+import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.cache.spi.TimestampsRegion;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cfg.Settings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClientFactory;
+import com.googlecode.hibernate.memcached.region.MemcachedCollectionRegion;
+import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
+import com.googlecode.hibernate.memcached.region.MemcachedNaturalIdRegion;
+import com.googlecode.hibernate.memcached.region.MemcachedQueryResultsRegion;
+import com.googlecode.hibernate.memcached.region.MemcachedTimestampsRegion;
 
 
 /**
@@ -47,7 +52,7 @@ public class MemcachedRegionFactory implements RegionFactory {
     private final ConcurrentMap<String, MemcachedCache> caches = new ConcurrentHashMap<String, MemcachedCache>();
     
     private Properties properties;
-    private Memcache client;
+    private HibernateMemcachedClient client;
     private Settings settings;
     
     public MemcachedRegionFactory(Properties properties) {
@@ -101,7 +106,8 @@ public class MemcachedRegionFactory implements RegionFactory {
     
     @Override
     public NaturalIdRegion buildNaturalIdRegion(String regionName, Properties properties, CacheDataDescription metadata) throws CacheException {
-        throw new UnsupportedOperationException("Can't generate NaturalIdRegion");
+        return new MemcachedNaturalIdRegion(getCache(regionName), settings,
+                metadata, properties, client);
     }
 
     public QueryResultsRegion buildQueryResultsRegion(String regionName, Properties properties) throws CacheException {
@@ -114,7 +120,7 @@ public class MemcachedRegionFactory implements RegionFactory {
                 properties, client);
     }
     
-    protected MemcacheClientFactory getMemcachedClientFactory(Config config) {
+    protected HibernateMemcachedClientFactory getMemcachedClientFactory(Config config) {
         String factoryClassName = config.getMemcachedClientFactoryName();
 
         Constructor<?> constructor;
@@ -129,9 +135,9 @@ public class MemcachedRegionFactory implements RegionFactory {
                     "Unable to find PropertiesHelper constructor for factory class [" + factoryClassName + "]", e);
         }
 
-        MemcacheClientFactory clientFactory;
+        HibernateMemcachedClientFactory clientFactory;
         try {
-            clientFactory = (MemcacheClientFactory) constructor.newInstance(config.getPropertiesHelper());
+            clientFactory = (HibernateMemcachedClientFactory) constructor.newInstance(config.getPropertiesHelper());
         } catch (Exception e) {
             throw new CacheException(
                     "Unable to instantiate factory class [" + factoryClassName + "]", e);

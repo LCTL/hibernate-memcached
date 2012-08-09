@@ -14,73 +14,54 @@
  */
 package com.googlecode.hibernate.memcached.strategy;
 
-import com.googlecode.hibernate.memcached.region.AbstractMemcachedRegion;
-import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
-import com.googlecode.hibernate.memcached.strategy.AbstractReadWriteMemcachedAccessStrategy;
 import org.hibernate.cache.CacheException;
-import org.hibernate.cache.spi.EntityRegion;
 import org.hibernate.cache.spi.access.EntityRegionAccessStrategy;
 import org.hibernate.cache.spi.access.SoftLock;
 import org.hibernate.cfg.Settings;
+
+import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
 
 /**
  *
  * @author kcarlson
  */
 public class ReadWriteMemcachedEntityRegionAccessStrategy 
-        extends AbstractReadWriteMemcachedAccessStrategy<AbstractMemcachedRegion> implements EntityRegionAccessStrategy
-{
+    extends AbstractReadWriteMemcachedAccessStrategy<MemcachedEntityRegion>
+    implements EntityRegionAccessStrategy {
 
-    public ReadWriteMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion aThis, Settings settings)
-    {
-        super(aThis, settings, aThis.getCacheDataDescription());
+    public ReadWriteMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion region, Settings settings) {
+        super(region, settings, region.getCacheDataDescription());
     }
 
-    public EntityRegion getRegion()
-    {
-        return (MemcachedEntityRegion)region;
-    }
-
-    public boolean insert(Object key, Object value, Object version) throws CacheException
-    {
-        return false;
-    }
-
-    public boolean afterInsert(Object key, Object value, Object version) throws CacheException
-    {
-        region.getCache().lock(key);
+    @Override
+    public boolean afterInsert(Object key, Object value, Object version) throws CacheException {
+        getRegion().getCache().lock(key);
         try {
-            Lockable item = (Lockable) region.getCache().get(key);
+            Lockable item = (Lockable) getRegion().getCache().get(key);
             if (item == null) {
-                region.getCache().put(key, new Item(value, version, region.nextTimestamp()));
+                getRegion().getCache().put(key, new Item(value, version, getRegion().nextTimestamp()));
                 return true;
             } else {
                 return false;
             }
         } finally {
-            region.getCache().unlock(key);
+            getRegion().getCache().unlock(key);
         }
     }
 
-    public boolean update(Object key, Object value, Object currentVersion, Object previousVersion) throws CacheException
-    {
-        return false;
-    }
-
-    public boolean afterUpdate(Object key, Object value, Object currentVersion, Object previousVersion, SoftLock lock) throws CacheException
-    {
+    public boolean afterUpdate(Object key, Object value, Object currentVersion, Object previousVersion, SoftLock lock) throws CacheException {
         //what should we do with previousVersion here?
-        region.getCache().lock(key);
+        getRegion().getCache().lock(key);
         try {
-            Lockable item = (Lockable) region.getCache().get(key);
-
-            if (item != null && item.isUnlockable(lock)) {
+            Lockable item = (Lockable) getRegion().getCache().get(key);
+            boolean unlockable = item != null && item.isUnlockable(lock);
+            if (unlockable) {
                 Lock lockItem = (Lock) item;
                 if (lockItem.wasLockedConcurrently()) {
                     decrementLock(key, lockItem);
                     return false;
                 } else {
-                    region.getCache().put(key, new Item(value, currentVersion, region.nextTimestamp()));
+                    getRegion().getCache().put(key, new Item(value, currentVersion, getRegion().nextTimestamp()));
                     return true;
                 }
             } else {
@@ -88,9 +69,22 @@ public class ReadWriteMemcachedEntityRegionAccessStrategy
                 return false;
             }
         } finally {
-            region.getCache().unlock(key);
+            getRegion().getCache().unlock(key);
         }
     }
-    
+
+    /**
+     * {@inheritDoc}</br>
+     * Only want to insert after the transaction completes.
+     * This cache is asynchronous hence a no-op.
+     */
+    @Override
+    public boolean insert(Object key, Object value, Object version) throws CacheException {
+        return false;
+    }
+
+    public boolean update(Object key, Object value, Object currentVersion, Object previousVersion) throws CacheException {
+        return false;
+    }
    
 }

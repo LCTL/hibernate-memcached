@@ -14,68 +14,64 @@
  */
 package com.googlecode.hibernate.memcached.strategy;
 
-import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
 import org.hibernate.cache.CacheException;
+import org.hibernate.cache.spi.access.EntityRegionAccessStrategy;
 import org.hibernate.cache.spi.access.SoftLock;
 import org.hibernate.cfg.Settings;
+
+import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
 
 /**
  *
  * @author kcarlson
  */
-public class NonStrictReadWriteMemcachedEntityRegionAccessStrategy extends AbstractEntityRegionAccessStrategy
-{
+public class NonStrictReadWriteMemcachedEntityRegionAccessStrategy 
+    extends AbstractNoLockMemcachedRegionAccessStrategy<MemcachedEntityRegion> 
+    implements EntityRegionAccessStrategy {
 
-    public NonStrictReadWriteMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion aThis, Settings settings)
-    {
+    public NonStrictReadWriteMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion aThis, Settings settings) {
         super(aThis, settings);
     }
 
+    /**
+     * {@inheritDoc}
+     * @return true, the cache was changed
+     */
     @Override
-    public boolean putFromLoad(Object key, Object value, long txTimestamp, Object version, boolean minimalPutOverride) throws CacheException
-    {
-          if (minimalPutOverride && region.getCache().get(key) != null) {
-            return false;
-        } else {
-            region.getCache().put(key, value);
-            return true;
-        }
-    }
-
-    public boolean insert(Object key, Object value, Object version) throws CacheException
-    {
-        return false;
-    }
-
-    public boolean afterInsert(Object key, Object value, Object version) throws CacheException
-    {
-        region.getCache().put(key, value);
+    public boolean afterInsert(Object key, Object value, Object version) throws CacheException {
+        getRegion().getCache().put(key, value);
         return true;
     }
 
-    public boolean update(Object key, Object value, Object currentVersion, Object previousVersion) throws CacheException
-    {
-        throw new UnsupportedOperationException("Can't write to a readonly object");
+    /**
+     * {@inheritDoc}
+     * @return true, the cache was changed
+     */
+    @Override
+    public boolean afterUpdate(Object key, Object value, Object currentVersion, Object previousVersion, SoftLock lock) throws CacheException {
+        getRegion().getCache().put(key, value);
+        return true;
     }
 
-    public boolean afterUpdate(Object key, Object value, Object currentVersion, Object previousVersion, SoftLock lock) throws CacheException
-    {
-        throw new UnsupportedOperationException("Can't write to a readonly object");
+    /**
+     * {@inheritDoc}</br>
+     * Only want to insert after the transaction completes.
+     * This cache is asynchronous hence a no-op.
+     * @return false, no change to the cache
+     */
+    @Override
+    public boolean insert(Object key, Object value, Object version) throws CacheException {
+        return false;
     }
 
-    public Object get(Object key, long txTimestamp) throws CacheException
-    {
-        return region.getCache().get(key);
+    /**
+     * {@inheritDoc}</br>
+     * Only want to update after the transaction completes.
+     * This cache is asynchronous hence a no-op.
+     * @return false, no change to the cache
+     */
+    @Override
+    public boolean update(Object key, Object value, Object currentVersion, Object previousVersion) throws CacheException {
+        return false;
     }
-
-    public SoftLock lockItem(Object key, Object version) throws CacheException
-    {
-        throw new UnsupportedOperationException("Can't write to a readonly object");
-    }
-
-    public void unlockItem(Object key, SoftLock lock) throws CacheException
-    {
-        //throw new UnsupportedOperationException("Can't write to a readonly object");
-    }
-    
 }

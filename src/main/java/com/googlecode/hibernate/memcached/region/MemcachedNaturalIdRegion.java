@@ -7,31 +7,36 @@ import org.hibernate.cache.spi.NaturalIdRegion;
 import org.hibernate.cache.spi.access.NaturalIdRegionAccessStrategy;
 import org.hibernate.cfg.Settings;
 
-import com.googlecode.hibernate.memcached.Memcache;
 import com.googlecode.hibernate.memcached.MemcachedCache;
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
+import com.googlecode.hibernate.memcached.strategy.NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy;
+import com.googlecode.hibernate.memcached.strategy.ReadOnlyMemcachedNaturalIdRegionAccessStrategy;
+import com.googlecode.hibernate.memcached.strategy.ReadWriteMemcachedNaturalIdRegionAccessStrategy;
+import com.googlecode.hibernate.memcached.strategy.TransactionalMemcachedNaturalIdRegionAccessStrategy;
 
 public class MemcachedNaturalIdRegion 
     extends AbstractMemcachedTransactionalDataRegion<NaturalIdRegionAccessStrategy>
     implements NaturalIdRegion {
 
-    public MemcachedNaturalIdRegion(MemcachedCache cache, Settings settings, CacheDataDescription metadata, Properties properties, Memcache client) {
+    public MemcachedNaturalIdRegion(MemcachedCache cache, Settings settings, 
+            CacheDataDescription metadata, Properties properties, HibernateMemcachedClient client) {
         super(cache, settings, metadata);
     }
 
     public NaturalIdRegionAccessStrategy getReadOnlyRegionAccessStrategy(Settings settings) {
-        return null;
+        return new ReadOnlyMemcachedNaturalIdRegionAccessStrategy(this, settings);
     }
 
     public NaturalIdRegionAccessStrategy getReadWriteRegionAccessStrategy(Settings settings) {
-        return null;
+        return new ReadWriteMemcachedNaturalIdRegionAccessStrategy(this, settings, getCacheDataDescription());
     }
 
     public NaturalIdRegionAccessStrategy getNonStrictReadWriteRegionAccessStrategy(Settings settings) {
-        return null;
+        return new NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy(this, settings);
     }
 
     public NaturalIdRegionAccessStrategy getTransactionalRegionAccessStrategy(Settings settings) {
-        return null;
+        return new TransactionalMemcachedNaturalIdRegionAccessStrategy(this, settings, getCacheDataDescription());
     }
 
 }

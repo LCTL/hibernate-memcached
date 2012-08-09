@@ -1,13 +1,14 @@
 package com.googlecode.hibernate.memcached.integration;
 
-import com.googlecode.hibernate.memcached.BaseTestCase;
+import java.util.Properties;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.cfg.Configuration;
 
-import java.util.Properties;
+import com.googlecode.hibernate.memcached.BaseTestCase;
 
 /**
  * DOCUMENT ME!
@@ -39,8 +40,8 @@ public abstract class AbstractHibernateTestCase extends BaseTestCase {
         props.setProperty("hibernate.connection.url", "jdbc:hsqldb:mem:test");
         props.setProperty("hibernate.connection.username", "sa");
         props.setProperty("hibernate.connection.password", "");
-        props.setProperty("hibernate.cache.provider_class",
-                com.googlecode.hibernate.memcached.MemcachedCacheProvider.class.getName());
+        //props.setProperty("hibernate.cache.provider_class",
+        //        com.googlecode.hibernate.memcached.MemcachedCacheProvider.class.getName());
         props.setProperty("hibernate.cache.region.factory_class",
         		com.googlecode.hibernate.memcached.MemcachedRegionFactory.class.getName());
         props.setProperty("hibernate.hbm2ddl.auto", "create-drop");
@@ -53,6 +54,7 @@ public abstract class AbstractHibernateTestCase extends BaseTestCase {
 
     void setupBeforeTransaction() {
     }
+    
 
     @Override
     protected void setUp() {

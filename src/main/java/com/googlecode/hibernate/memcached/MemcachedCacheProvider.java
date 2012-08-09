@@ -20,6 +20,10 @@ import org.hibernate.cache.CacheException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClientFactory;
+import com.googlecode.hibernate.memcached.strategy.key.KeyStrategy;
+
 import java.lang.reflect.Constructor;
 import java.util.Properties;
 
@@ -85,7 +89,7 @@ public class MemcachedCacheProvider /*implements CacheProvider*/ {
 
     private final Logger log = LoggerFactory.getLogger(MemcachedCacheProvider.class);
 
-    private Memcache client;
+    private HibernateMemcachedClient client;
 
     public MemcachedCache buildCache(String regionName, Properties properties) throws CacheException {
 
@@ -157,7 +161,7 @@ public class MemcachedCacheProvider /*implements CacheProvider*/ {
         }
     }
 
-    protected MemcacheClientFactory getMemcachedClientFactory(Config config) {
+    protected HibernateMemcachedClientFactory getMemcachedClientFactory(Config config) {
         String factoryClassName = config.getMemcachedClientFactoryName();
 
         Constructor<?> constructor;
@@ -172,9 +176,9 @@ public class MemcachedCacheProvider /*implements CacheProvider*/ {
                     "Unable to find PropertiesHelper constructor for factory class [" + factoryClassName + "]", e);
         }
 
-        MemcacheClientFactory clientFactory;
+        HibernateMemcachedClientFactory clientFactory;
         try {
-            clientFactory = (MemcacheClientFactory) constructor.newInstance(config.getPropertiesHelper());
+            clientFactory = (HibernateMemcachedClientFactory) constructor.newInstance(config.getPropertiesHelper());
         } catch (Exception e) {
             throw new CacheException(
                     "Unable to instantiate factory class [" + factoryClassName + "]", e);

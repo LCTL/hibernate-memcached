@@ -5,6 +5,7 @@ import org.hibernate.cache.spi.CacheDataDescription;
 import org.hibernate.cache.spi.TransactionalDataRegion;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.access.RegionAccessStrategy;
+import org.hibernate.cache.spi.access.UnknownAccessTypeException;
 import org.hibernate.cfg.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +44,7 @@ public abstract class AbstractMemcachedTransactionalDataRegion<S extends RegionA
         case TRANSACTIONAL:
             return getTransactionalRegionAccessStrategy(getSettings());
         default:
-            throw new IllegalArgumentException("unrecognized access strategy type [" + accessType + "]");
+            throw new UnknownAccessTypeException("unrecognized access strategy type [" + accessType + "]");
         }
     }
 

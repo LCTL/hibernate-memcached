@@ -14,47 +14,20 @@
  */
 package com.googlecode.hibernate.memcached.strategy;
 
-import com.googlecode.hibernate.memcached.region.MemcachedCollectionRegion;
-import org.hibernate.cache.CacheException;
-import org.hibernate.cache.spi.access.SoftLock;
+import org.hibernate.cache.spi.access.CollectionRegionAccessStrategy;
 import org.hibernate.cfg.Settings;
+
+import com.googlecode.hibernate.memcached.region.MemcachedCollectionRegion;
 
 /**
  *
  * @author kcarlson
  */
-public class ReadOnlyMemcachedCollectionRegionAccessStrategy extends AbstractCollectionRegionAccessStrategy
-{
+public class ReadOnlyMemcachedCollectionRegionAccessStrategy 
+    extends AbstractNoLockMemcachedRegionAccessStrategy<MemcachedCollectionRegion> 
+    implements CollectionRegionAccessStrategy {
 
-    public ReadOnlyMemcachedCollectionRegionAccessStrategy(MemcachedCollectionRegion aThis, Settings settings)
-    {
-        super(aThis, settings);
+    public ReadOnlyMemcachedCollectionRegionAccessStrategy(MemcachedCollectionRegion region, Settings settings) {
+        super(region, settings);
     }
-
-    @Override
-    public boolean putFromLoad(Object key, Object value, long txTimestamp, Object version, boolean minimalPutOverride) throws CacheException
-    {
-       if (minimalPutOverride && region.getCache().get(key) != null) {
-            return false;
-        } else {
-            region.getCache().put(key, value);
-            return true;
-        }
-    }
-
-    public Object get(Object key, long txTimestamp) throws CacheException
-    {
-        return region.getCache().get(key);
-    }
-
-    public SoftLock lockItem(Object key, Object version) throws CacheException
-    {
-        throw new UnsupportedOperationException("Can't write to a readonly object");
-    }
-
-    public void unlockItem(Object key, SoftLock lock) throws CacheException
-    {   
-        //throw new UnsupportedOperationException("Can't write to a readonly object");
-    }
-    
 }
