@@ -40,10 +40,8 @@ public abstract class AbstractHibernateTestCase extends BaseTestCase {
         props.setProperty("hibernate.connection.url", "jdbc:hsqldb:mem:test");
         props.setProperty("hibernate.connection.username", "sa");
         props.setProperty("hibernate.connection.password", "");
-        //props.setProperty("hibernate.cache.provider_class",
-        //        com.googlecode.hibernate.memcached.MemcachedCacheProvider.class.getName());
         props.setProperty("hibernate.cache.region.factory_class",
-        		com.googlecode.hibernate.memcached.MemcachedRegionFactory.class.getName());
+                com.googlecode.hibernate.memcached.MemcachedRegionFactory.class.getName());
         props.setProperty("hibernate.hbm2ddl.auto", "create-drop");
         return props;
     }

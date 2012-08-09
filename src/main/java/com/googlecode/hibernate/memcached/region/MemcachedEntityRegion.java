@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.googlecode.hibernate.memcached.MemcachedCache;
-import com.googlecode.hibernate.memcached.MemcachedCacheProvider;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.strategy.NonStrictReadWriteMemcachedEntityRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.ReadOnlyMemcachedEntityRegionAccessStrategy;
@@ -39,7 +38,7 @@ public class MemcachedEntityRegion
     extends AbstractMemcachedTransactionalDataRegion<EntityRegionAccessStrategy>
     implements EntityRegion {
     
-    private final Logger log = LoggerFactory.getLogger(MemcachedCacheProvider.class);
+    private final Logger log = LoggerFactory.getLogger(MemcachedEntityRegion.class);
     
     public MemcachedEntityRegion(MemcachedCache cache, Settings settings, 
             CacheDataDescription metadata, Properties properties, HibernateMemcachedClient client) {

@@ -18,7 +18,7 @@ import com.googlecode.hibernate.memcached.client.HibernateMemcachedClientFactory
 
 /**
  * Parses hibernate properties to produce a MemcachedClient.<br/>
- * See {@link com.googlecode.hibernate.memcached.MemcachedCacheProvider} for property details.
+ * See {@link com.googlecode.hibernate.memcached.Config} for property details.
  *
  * @author Ray Krueger
  */

@@ -47,13 +47,14 @@ import com.googlecode.hibernate.memcached.region.MemcachedTimestampsRegion;
  */
 public class MemcachedRegionFactory implements RegionFactory {
 
-    private static final Logger log = LoggerFactory.getLogger(MemcachedCacheProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(MemcachedRegionFactory.class);
     
     private final ConcurrentMap<String, MemcachedCache> caches = new ConcurrentHashMap<String, MemcachedCache>();
     
     private Properties properties;
     private HibernateMemcachedClient client;
     private Settings settings;
+    private Config config;
     
     public MemcachedRegionFactory(Properties properties) {
         this.properties = properties;
@@ -63,12 +64,14 @@ public class MemcachedRegionFactory implements RegionFactory {
     }
     
     public void start(Settings settings, Properties properties) throws CacheException {
+        log.info("Starting MemcachedClient...");
+        
         this.settings = settings;
         this.properties = properties;
-        log.info("Starting MemcachedClient...");
+        this.config = new Config(new PropertiesHelper(properties));
+
         try {
-            client = getMemcachedClientFactory(new Config(new PropertiesHelper(properties)))
-                    .createMemcacheClient();
+            client = getMemcachedClientFactory(config).createMemcacheClient();
         } catch (Exception e) {
             throw new CacheException("Unable to initialize MemcachedClient", e);
         }
@@ -146,9 +149,20 @@ public class MemcachedRegionFactory implements RegionFactory {
         return clientFactory;
     }
     
-    private MemcachedCache getCache(String regionName)
-    {
-        return caches.get(regionName) == null
-                ? new MemcachedCache(regionName, client) : caches.get(regionName);
+    private MemcachedCache getCache(String regionName) {
+        /// check regionName
+        MemcachedCache cache = caches.get(regionName);
+        if (cache == null ) {
+            cache = new MemcachedCache(regionName, client);
+            cache.setCacheTimeSeconds(config.getCacheTimeSeconds(regionName));
+            cache.setKeyStrategy(config.getKeyStrategy(regionName));
+            cache.setClearSupported(config.isClearSupported(regionName));
+            cache.setDogpilePreventionEnabled(config.isDogpilePreventionEnabled(regionName));
+            cache.setDogpilePreventionExpirationFactor(config.getDogpilePreventionExpirationFactor(regionName));
+            
+            caches.put(regionName, cache);
+        }
+        
+        return cache;
     }
 }
