@@ -1,8 +1,12 @@
 package com.googlecode.hibernate.memcached;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
 import org.hibernate.cache.CacheException;
+
+import com.googlecode.hibernate.memcached.utils.StringUtils;
 
 public class PropertiesHelper {
 
@@ -55,16 +59,13 @@ public class PropertiesHelper {
         return val == null ? defaultValue : Enum.valueOf(type, val);
     }
     
-    public <T extends Object> T getObject(String key, T defaultValue) {
+    public <T extends Object> T getObject(String key, T defaultValue, Object ... args) {
         String className = get(key);
-        try {
-            return className == null ? defaultValue : (T) Class.forName(className).newInstance();
-        } catch (InstantiationException e) {
-            throw new CacheException("Could not instantiate " + className + " class", e);
-        } catch (IllegalAccessException e) {
-            throw new CacheException("Could not instantiate " + className + " class", e);
-        } catch (ClassNotFoundException e) {
-            throw new CacheException("Could not instantiate " + className + " class", e);
+        
+        if (className == null) {
+            return defaultValue;
         }
+
+        return StringUtils.newInstance(className, args);
     }
 }

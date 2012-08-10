@@ -71,7 +71,7 @@ public class MemcachedRegionFactory implements RegionFactory {
         this.config = new Config(new PropertiesHelper(properties));
 
         try {
-            client = getMemcachedClientFactory(config).createMemcacheClient();
+            client = config.getMemcachedClientFactory().createMemcacheClient();
         } catch (Exception e) {
             throw new CacheException("Unable to initialize MemcachedClient", e);
         }
@@ -121,32 +121,6 @@ public class MemcachedRegionFactory implements RegionFactory {
     public TimestampsRegion buildTimestampsRegion(String regionName, Properties properties) throws CacheException {
         return new MemcachedTimestampsRegion(getCache(regionName),
                 properties, client);
-    }
-    
-    protected HibernateMemcachedClientFactory getMemcachedClientFactory(Config config) {
-        String factoryClassName = config.getMemcachedClientFactoryName();
-
-        Constructor<?> constructor;
-        try {
-            constructor = Class.forName(factoryClassName)
-                    .getConstructor(PropertiesHelper.class);
-        } catch (ClassNotFoundException e) {
-            throw new CacheException(
-                    "Unable to find factory class [" + factoryClassName + "]", e);
-        } catch (NoSuchMethodException e) {
-            throw new CacheException(
-                    "Unable to find PropertiesHelper constructor for factory class [" + factoryClassName + "]", e);
-        }
-
-        HibernateMemcachedClientFactory clientFactory;
-        try {
-            clientFactory = (HibernateMemcachedClientFactory) constructor.newInstance(config.getPropertiesHelper());
-        } catch (Exception e) {
-            throw new CacheException(
-                    "Unable to instantiate factory class [" + factoryClassName + "]", e);
-        }
-
-        return clientFactory;
     }
     
     private MemcachedCache getCache(String regionName) {

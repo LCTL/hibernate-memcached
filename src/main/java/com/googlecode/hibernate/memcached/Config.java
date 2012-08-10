@@ -1,10 +1,14 @@
 package com.googlecode.hibernate.memcached;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.hibernate.cache.CacheException;
 
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClientFactory;
 import com.googlecode.hibernate.memcached.client.spymemcached.SpyMemcacheClientFactory;
 import com.googlecode.hibernate.memcached.strategy.key.KeyStrategy;
 import com.googlecode.hibernate.memcached.strategy.key.Sha1KeyStrategy;
+import com.googlecode.hibernate.memcached.utils.StringUtils;
 
 /**
  * Configures an instance of {@link MemcachedCache} for use as a second-level cache in Hibernate.
@@ -84,6 +88,7 @@ public class Config {
     public static final String PROP_DOGPILE_PREVENTION_EXPIRATION_FACTOR = PROP_PREFIX + DOGPILE_PREVENTION_EXPIRATION_FACTOR;
 
     private static final String KEY_STRATEGY = "keyStrategy";
+    private static final String PROP_KEY_STRATEGY = PROP_PREFIX + KEY_STRATEGY;
 
     public static final int DEFAULT_CACHE_TIME_SECONDS = 300;
     public static final boolean DEFAULT_CLEAR_SUPPORTED = false;
@@ -106,15 +111,14 @@ public class Config {
     }
 
     public String getKeyStrategyName(String cacheRegion) {
-        String globalKeyStrategy = props.get(PROP_PREFIX + KEY_STRATEGY,
+        String globalKeyStrategy = props.get(PROP_KEY_STRATEGY,
                 Sha1KeyStrategy.class.getName());
         return props.get(cacheRegionPrefix(cacheRegion) + KEY_STRATEGY, globalKeyStrategy);
     }
     
     public KeyStrategy getKeyStrategy(String cacheRegion) {
-        KeyStrategy globalKeyStrategy = props.getObject(PROP_PREFIX + KEY_STRATEGY,
-                DEFAULT_KEY_STRATEGY);
-        return props.getObject(cacheRegionPrefix(cacheRegion) + KEY_STRATEGY, globalKeyStrategy);
+        String keyStrategyName = getKeyStrategyName(cacheRegion);
+        return StringUtils.newInstance(keyStrategyName);
     }
 
     public boolean isClearSupported(String cacheRegion) {
@@ -141,6 +145,11 @@ public class Config {
     public String getMemcachedClientFactoryName() {
         return props.get(PROP_MEMCACHE_CLIENT_FACTORY,
                 DEFAULT_MEMCACHE_CLIENT_FACTORY);
+    }
+    
+    public HibernateMemcachedClientFactory getMemcachedClientFactory() {
+        String factoryClassName = getMemcachedClientFactoryName();
+        return StringUtils.newInstance(factoryClassName, props);
     }
 
     private String cacheRegionPrefix(String cacheRegion) {

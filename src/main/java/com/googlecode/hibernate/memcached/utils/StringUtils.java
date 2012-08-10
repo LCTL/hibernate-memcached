@@ -1,12 +1,22 @@
 package com.googlecode.hibernate.memcached.utils;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import org.hibernate.cache.CacheException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.googlecode.hibernate.memcached.LoggingMemcacheExceptionHandler;
 
 /**
  * @author Ray Krueger
  */
 public class StringUtils {
+
+    private static final Logger log = LoggerFactory.getLogger(StringUtils.class);
 
     private static final char[] DIGITS = {
             '0', '1', '2', '3', '4', '5', '6', '7',
@@ -49,6 +59,39 @@ public class StringUtils {
         byte[] bytes = digest("SHA1", data);
 
         return toHexString(bytes);
+    }
+    
+    public static <T extends Object> T newInstance(String className, Object ... args) {
+        T result = null;
+        
+        try {
+        
+            Class<T> clazz = (Class<T>) Class.forName(className);
+        
+            if (args == null) {
+                result = clazz.newInstance();
+            } else {
+                Class<?>[] types = new Class<?>[args.length];
+                for (int i = 0; i < args.length; i++) {
+                    types[i] = args[i].getClass();
+                }
+            
+                result = clazz.getConstructor(types).newInstance(args);
+            }
+        
+        } catch (InstantiationException e) {
+            log.error("Could not instantiate " + className + " class", e);
+        } catch (IllegalAccessException e) {
+            log.error("Could not instantiate " + className + " class", e);
+        } catch (ClassNotFoundException e) {
+            log.error("Could not instantiate " + className + " class", e);
+        } catch (NoSuchMethodException e) {
+            log.error("Could not instantiate " + className + " class", e);
+        } catch (InvocationTargetException e) {
+            log.error("Could not instantiate " + className + " class", e);
+        }
+        
+        return result;
     }
 
     private static String toHexString(byte[] bytes) {
