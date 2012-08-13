@@ -68,15 +68,23 @@ public class StringUtils {
         
             Class<T> clazz = (Class<T>) Class.forName(className);
         
-            if (args == null) {
+            if (args == null || args.length == 0) {
                 result = clazz.newInstance();
             } else {
-                Class<?>[] types = new Class<?>[args.length];
-                for (int i = 0; i < args.length; i++) {
-                    types[i] = args[i].getClass();
+                Constructor<T>[] constructors = (Constructor<T>[]) clazz.getConstructors();
+                
+                for (int i = 0; result == null && i < constructors.length; i++) {
+                    Class<?>[] constructorParamTypes = constructors[i].getParameterTypes();
+                    boolean isMatch = args.length == constructorParamTypes.length;
+                    for (int j = 0; isMatch && j < constructorParamTypes.length; j++) {
+                        // is this always the best match?
+                        isMatch = isMatch &&  constructorParamTypes[j].isInstance(args[j]);
+                    }
+                    
+                    if (isMatch) {
+                        result = constructors[i].newInstance(args);
+                    }
                 }
-            
-                result = clazz.getConstructor(types).newInstance(args);
             }
         
         } catch (InstantiationException e) {
@@ -84,8 +92,6 @@ public class StringUtils {
         } catch (IllegalAccessException e) {
             log.error("Could not instantiate " + className + " class", e);
         } catch (ClassNotFoundException e) {
-            log.error("Could not instantiate " + className + " class", e);
-        } catch (NoSuchMethodException e) {
             log.error("Could not instantiate " + className + " class", e);
         } catch (InvocationTargetException e) {
             log.error("Could not instantiate " + className + " class", e);

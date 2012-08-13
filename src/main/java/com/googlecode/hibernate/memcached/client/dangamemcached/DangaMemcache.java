@@ -57,17 +57,17 @@ public class DangaMemcache implements HibernateMemcachedClient {
         return null;
     }
 
-    public void set(String key, int cacheTimeSeconds, Object o) {
+    public boolean set(String key, int cacheTimeSeconds, Object o) {
         log.debug("MemCachedClient.set({})", key);
         try {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
             calendar.add(Calendar.SECOND, cacheTimeSeconds);
-
-            memcachedClient.set(key, o, calendar.getTime());
+            return memcachedClient.set(key, o, calendar.getTime());
         } catch (Exception e) {
             exceptionHandler.handleErrorOnSet(key, cacheTimeSeconds, o, e);
         }
+        return false;
     }
 
     public void delete(String key) {

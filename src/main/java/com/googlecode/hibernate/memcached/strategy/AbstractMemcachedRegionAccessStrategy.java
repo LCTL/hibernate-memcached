@@ -38,12 +38,12 @@ public abstract class AbstractMemcachedRegionAccessStrategy<T extends MemcachedR
 
     @Override
     public void evict(Object key) throws CacheException {
-        region.getCache().remove(key);
+        region.delete(String.valueOf(key));
     }
 
     @Override
     public void evictAll() throws CacheException {
-        region.getCache().clear();
+        region.clear(); // does this really mean the whole cache or just the region?
     }
 
     public T getRegion() {
@@ -62,12 +62,12 @@ public abstract class AbstractMemcachedRegionAccessStrategy<T extends MemcachedR
 
     @Override
     public void remove(Object key) throws CacheException {
-        region.getCache().remove(key);
+        evict(key);
     }
 
     @Override
     public void removeAll() throws CacheException {
-        region.getCache().clear();
+        region.clear();
     }
 
     @Override

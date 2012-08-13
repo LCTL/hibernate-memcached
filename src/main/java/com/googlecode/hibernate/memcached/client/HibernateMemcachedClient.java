@@ -13,7 +13,14 @@ public interface HibernateMemcachedClient {
 
     Map<String, Object> getMulti(String... keys);
 
-    void set(String key, int cacheTimeSeconds, Object o);
+    /**
+     * doc
+     * @param key
+     * @param cacheTimeSeconds
+     * @param o
+     * @return
+     */
+    boolean set(String key, int cacheTimeSeconds, Object o);
     
     boolean add(String key, int exp, Object o);
 

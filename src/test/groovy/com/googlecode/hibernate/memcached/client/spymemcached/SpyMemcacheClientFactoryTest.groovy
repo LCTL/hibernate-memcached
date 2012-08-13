@@ -7,13 +7,13 @@ import net.spy.memcached.auth.PlainCallbackHandler
 
 import com.googlecode.hibernate.memcached.BaseTestCase
 import com.googlecode.hibernate.memcached.client.*;
-import com.googlecode.hibernate.memcached.PropertiesHelper
+import com.googlecode.hibernate.memcached.MemcachedProperties
 
 class SpyMemcacheClientFactoryTest extends BaseTestCase {
 
     private Properties properties = new Properties()
     private HibernateMemcachedClient client
-    private SpyMemcacheClientFactory factory = new SpyMemcacheClientFactory(new PropertiesHelper(properties))
+    private SpyMemcacheClientFactory factory = new SpyMemcacheClientFactory(new MemcachedProperties(properties))
 
     void test_defaults() {
         client = factory.createMemcacheClient()

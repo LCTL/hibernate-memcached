@@ -32,13 +32,12 @@ class MemcachedRegionFactoryTest extends BaseTestCase {
     void test_defaults() {
         regionFactory.start(settings, properties)
         MemcachedQueryResultsRegion region = (MemcachedQueryResultsRegion) regionFactory.buildQueryResultsRegion("test", properties)
-        MemcachedCache cache = region.getCache()
-        assertNotNull(cache)
+        assertNotNull(region)
 
         //assert Defaults
-        assertFalse(cache.isClearSupported())
-        assertEquals(300, cache.getCacheTimeSeconds())
-        assertEquals Sha1KeyStrategy.class, cache.getKeyStrategy().class
+        assertFalse(region.isClearSupported())
+        assertEquals(300, region.getCacheTimeSeconds())
+        assertEquals Sha1KeyStrategy.class, region.getKeyStrategy().class
     }
 
     void test_region_properties() {
@@ -49,13 +48,12 @@ class MemcachedRegionFactoryTest extends BaseTestCase {
 
         regionFactory.start(settings, properties)
         MemcachedQueryResultsRegion region = (MemcachedQueryResultsRegion) regionFactory.buildQueryResultsRegion("test", properties)
-        MemcachedCache cache = region.getCache()
-        assertNotNull(cache)
+        assertNotNull(region)
 
         //assert Defaults
-        assertTrue(cache.isClearSupported())
-        assertEquals(500, cache.getCacheTimeSeconds())
-        assertEquals(StringKeyStrategy.class, cache.getKeyStrategy().class)
+        assertTrue(region.isClearSupported())
+        assertEquals(500, region.getCacheTimeSeconds())
+        assertEquals(StringKeyStrategy.class, region.getKeyStrategy().class)
     }
 
     void test_string_key_strategy() {
@@ -63,8 +61,9 @@ class MemcachedRegionFactoryTest extends BaseTestCase {
 
         regionFactory.start(settings, properties)
         MemcachedQueryResultsRegion region = (MemcachedQueryResultsRegion) regionFactory.buildQueryResultsRegion("test", properties)
-        MemcachedCache cache = region.getCache()
-        assertNotNull(cache)
+        assertNotNull(region)
+
+        assertEquals(StringKeyStrategy.class, region.getKeyStrategy().class)
     }
 
     void tearDown() {

@@ -57,9 +57,12 @@ public class AbstractReadWriteMemcachedAccessStrategy <T extends MemcachedRegion
      */
     @Override
     public final Object get(Object key, long txTimestamp) throws CacheException {
-        readLockIfNeeded(key);
+        String objectKey = String.valueOf(key);
+        MemcachedRegion region = getRegion();
+        region.acquireReadLock(objectKey);
+        
         try {
-            Lockable item = (Lockable) getRegion().getCache().get(key);
+            Lockable item = (Lockable) region.get(objectKey);
             boolean readable = item != null && item.isReadable(txTimestamp);
             if (readable) {
                 return item.getValue();
@@ -67,7 +70,7 @@ public class AbstractReadWriteMemcachedAccessStrategy <T extends MemcachedRegion
                 return null;
             }
         } finally {
-            readUnlockIfNeeded(key);
+            region.releaseWriteLock(objectKey);
         }
     }
  
@@ -76,15 +79,18 @@ public class AbstractReadWriteMemcachedAccessStrategy <T extends MemcachedRegion
      * Soft-lock a cache item.
      */
     public final SoftLock lockItem(Object key, Object version) throws CacheException {
-        readLockIfNeeded(key); // when are the locking methods called?
+        String objectKey = String.valueOf(key);
+        MemcachedRegion region = getRegion();
+        region.acquireWriteLock(objectKey);
+        
         try {
-            Lockable item = (Lockable) getRegion().getCache().get(key); // problem here? t1:get t2:get t1:set t2:set
-            long timeout = getRegion().nextTimestamp() + getRegion().getTimeout();
+            Lockable item = (Lockable) region.get(objectKey); // problem here? t1:get t2:get t1:set t2:set
+            long timeout = region.nextTimestamp() + region.getTimeout();
             final Lock lock = (item == null) ? new Lock(timeout, uuid, nextLockId(), version) : item.lock(timeout, uuid, nextLockId());
-            getRegion().getCache().put(key, lock);
+            getRegion().set(objectKey, lock);
             return lock;
         } finally {
-            readUnlockIfNeeded(key);
+            region.releaseWriteLock(objectKey);
         }
     }
  
@@ -95,18 +101,21 @@ public class AbstractReadWriteMemcachedAccessStrategy <T extends MemcachedRegion
      */
     @Override
     public final boolean putFromLoad(Object key, Object value, long txTimestamp, Object version, boolean minimalPutOverride) throws CacheException {
-        readLockIfNeeded(key);
+        String objectKey = String.valueOf(key);
+        MemcachedRegion region = getRegion();
+        region.acquireWriteLock(objectKey);
+        
         try {
-            Lockable item = (Lockable) getRegion().getCache().get(key);
+            Lockable item = (Lockable) region.get(objectKey);
             boolean writeable = item == null || item.isWriteable(txTimestamp, version, versionComparator);
             if (writeable) {
-                getRegion().getCache().put(key, new Item(value, version, getRegion().nextTimestamp()));
+                region.set(objectKey, new Item(value, version, region.nextTimestamp()));
                 return true;
             } else {
                 return false;
             }
         } finally {
-            readUnlockIfNeeded(key);
+            region.releaseWriteLock(objectKey);
         }
     }
  
@@ -115,33 +124,36 @@ public class AbstractReadWriteMemcachedAccessStrategy <T extends MemcachedRegion
      * Soft-unlock a cache item.
      */
     public final void unlockItem(Object key, SoftLock lock) throws CacheException {
-        readLockIfNeeded(key);
+        String objectKey = String.valueOf(key);
+        MemcachedRegion region = getRegion();
+        region.acquireWriteLock(objectKey);
+        
         try {
-            Lockable item = (Lockable) getRegion().getCache().get(key);
+            Lockable item = (Lockable) region.get(objectKey);
             boolean unlockable = item != null && item.isUnlockable(lock);
             if (unlockable) {
-                decrementLock(key, (Lock) item);
+                decrementLock(objectKey, (Lock) item);
             } else {
-                handleLockExpiry(key, item);
+                handleLockExpiry(objectKey, item);
             }
         } finally {
-            readUnlockIfNeeded(key);
+            region.releaseWriteLock(objectKey);
         }
     }
  
     /**
      * Unlock and re-put the given key, lock combination.
      */
-    protected void decrementLock(Object key, Lock lock) {
+    protected void decrementLock(String objectKey, Lock lock) {
         lock.unlock(getRegion().nextTimestamp());
-        getRegion().getCache().put(key, lock);
+        getRegion().set(objectKey, lock);
     }
  
     /**
      * Handle the timeout of a previous lock mapped to this key
      */
-    protected void handleLockExpiry(Object key, Lockable lock) {
-        log.warn("Cache " + getRegion().getName() + " Key " + key + " Lockable : " + lock + "\n"
+    protected void handleLockExpiry(String objectKey, Lockable lock) {
+        log.warn("Cache " + getRegion().getName() + " Key " + objectKey + " Lockable : " + lock + "\n"
                 + "A soft-locked cache entry was expired by the underlying Memcache. "
                 + "If this happens regularly you should consider increasing the cache timeouts and/or capacity limits");
         long timestamp = getRegion().nextTimestamp();
@@ -149,26 +161,11 @@ public class AbstractReadWriteMemcachedAccessStrategy <T extends MemcachedRegion
         // create new lock that times out immediately
         Lock newLock = new Lock(timeout, uuid, nextLockId.getAndIncrement(), null);
         //newLock.unlock(timestamp); // should this be just nextTimestamp (now)?
-        getRegion().getCache().put(key, newLock);
+        getRegion().set(objectKey, newLock);
     }
  
     private long nextLockId() {
         return nextLockId.getAndIncrement();
     }
- 
-    /**
-     * Read lock the entry for the given key if internal cache locks will not provide correct exclusion.
-     */
-    private void readLockIfNeeded(Object key) {
-        // why is this here, memcached does not support locking natively
-        getRegion().getCache().lock(key);
-    }
- 
-    /**
-     * Read unlock the entry for the given key if internal cache locks will not provide correct exclusion.
-     */
-    private void readUnlockIfNeeded(Object key) {
-        getRegion().getCache().unlock(key);
-    }
-    
+
 }

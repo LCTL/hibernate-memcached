@@ -47,16 +47,20 @@ public class SpyMemcache implements HibernateMemcachedClient {
         return null;
     }
 
-    public void set(String key, int cacheTimeSeconds, Object o) {
+    public boolean set(String key, int cacheTimeSeconds, Object o) {
         log.debug("MemcachedClient.set({})", key);
         try {
             memcachedClient.set(key, cacheTimeSeconds, o);
+            return true;
         } catch (Exception e) {
             exceptionHandler.handleErrorOnSet(key, cacheTimeSeconds, o, e);
         }
+        return false;
     }
     
+    // TODO: implement correctly
     public boolean add(String key, int exp, Object o) {
+    	memcachedClient.add(key, exp, o);
     	return false;
     }
 

@@ -14,8 +14,9 @@ class MockMemcached implements HibernateMemcachedClient {
         cache[key]
     }
 
-    public void set(String key, int cacheTimeSeconds, Object o) {
+    public boolean set(String key, int cacheTimeSeconds, Object o) {
         cache[key] = o
+        return true;
     }
 
     public boolean add(String key, int exp, Object o) {

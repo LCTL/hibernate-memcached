@@ -12,7 +12,7 @@ import net.spy.memcached.auth.AuthDescriptor;
 import net.spy.memcached.auth.PlainCallbackHandler;
 
 import com.googlecode.hibernate.memcached.Config;
-import com.googlecode.hibernate.memcached.PropertiesHelper;
+import com.googlecode.hibernate.memcached.MemcachedProperties;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClientFactory;
 
@@ -33,9 +33,9 @@ public class SpyMemcacheClientFactory implements HibernateMemcachedClientFactory
     public static final String PROP_DAEMON_MODE = Config.PROP_PREFIX + "daemonMode";
     public static final String PROP_USERNAME = Config.PROP_PREFIX + "username";
     public static final String PROP_PASSWORD = Config.PROP_PREFIX + "password";
-    private final PropertiesHelper properties;
+    private final MemcachedProperties properties;
 
-    public SpyMemcacheClientFactory(PropertiesHelper properties) {
+    public SpyMemcacheClientFactory(MemcachedProperties properties) {
         this.properties = properties;
     }
 
@@ -169,7 +169,7 @@ public class SpyMemcacheClientFactory implements HibernateMemcachedClientFactory
                 DefaultConnectionFactory.class.getSimpleName());
     }
 
-    protected PropertiesHelper getProperties() {
+    protected MemcachedProperties getProperties() {
         return properties;
     }
 }

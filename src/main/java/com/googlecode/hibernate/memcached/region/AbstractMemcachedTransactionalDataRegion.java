@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.googlecode.hibernate.memcached.MemcachedCache;
+import com.googlecode.hibernate.memcached.MemcachedRegionPropertiesHolder;
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.strategy.TransactionalDataRegionAccessStrategyFactory;
 
 public abstract class AbstractMemcachedTransactionalDataRegion<S extends RegionAccessStrategy>
@@ -20,13 +22,10 @@ public abstract class AbstractMemcachedTransactionalDataRegion<S extends RegionA
     private static final Logger log = LoggerFactory.getLogger(AbstractMemcachedTransactionalDataRegion.class);
     
     private final CacheDataDescription metadata;
-    private final Settings settings;
 
-    public AbstractMemcachedTransactionalDataRegion(MemcachedCache cache, 
-            Settings settings, CacheDataDescription metadata) {
-        super(cache);
+    public AbstractMemcachedTransactionalDataRegion(HibernateMemcachedClient client, MemcachedRegionPropertiesHolder properties, Settings settings, CacheDataDescription metadata) {
+        super(client, properties, settings);
         this.metadata = metadata;
-        this.settings = settings;
     }
     
     public S buildAccessStrategy(AccessType accessType) throws CacheException {
@@ -55,9 +54,4 @@ public abstract class AbstractMemcachedTransactionalDataRegion<S extends RegionA
     public CacheDataDescription getCacheDataDescription() {
         return metadata;
     }
-    
-    protected Settings getSettings() {
-        return settings;
-    }
-
 }

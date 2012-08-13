@@ -96,10 +96,10 @@ public class Config {
     public static final String DEFAULT_MEMCACHE_CLIENT_FACTORY = SpyMemcacheClientFactory.class.getName();
     public static final KeyStrategy DEFAULT_KEY_STRATEGY = new Sha1KeyStrategy();
     
-    private PropertiesHelper props;
+    private MemcachedProperties props;
     private static final int DEFAULT_DOGPILE_EXPIRATION_FACTOR = 2;
 
-    public Config(PropertiesHelper props) {
+    public Config(MemcachedProperties props) {
         this.props = props;
     }
 
@@ -156,7 +156,7 @@ public class Config {
         return PROP_PREFIX + cacheRegion + ".";
     }
 
-    public PropertiesHelper getPropertiesHelper() {
+    public MemcachedProperties getPropertiesHelper() {
         return props;
     }
     

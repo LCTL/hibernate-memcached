@@ -8,6 +8,7 @@ import org.hibernate.cache.spi.access.NaturalIdRegionAccessStrategy;
 import org.hibernate.cfg.Settings;
 
 import com.googlecode.hibernate.memcached.MemcachedCache;
+import com.googlecode.hibernate.memcached.MemcachedRegionPropertiesHolder;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.strategy.NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.ReadOnlyMemcachedNaturalIdRegionAccessStrategy;
@@ -18,9 +19,9 @@ public class MemcachedNaturalIdRegion
     extends AbstractMemcachedTransactionalDataRegion<NaturalIdRegionAccessStrategy>
     implements NaturalIdRegion {
 
-    public MemcachedNaturalIdRegion(MemcachedCache cache, Settings settings, 
-            CacheDataDescription metadata, Properties properties, HibernateMemcachedClient client) {
-        super(cache, settings, metadata);
+    public MemcachedNaturalIdRegion(HibernateMemcachedClient client, 
+            MemcachedRegionPropertiesHolder properties, Settings settings, CacheDataDescription metadata) {
+        super(client, properties, settings, metadata);
     }
 
     public NaturalIdRegionAccessStrategy getReadOnlyRegionAccessStrategy(Settings settings) {

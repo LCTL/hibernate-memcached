@@ -5,7 +5,7 @@ import org.hibernate.cache.CacheException;
 import com.danga.MemCached.ErrorHandler;
 import com.danga.MemCached.MemCachedClient;
 import com.danga.MemCached.SockIOPool;
-import com.googlecode.hibernate.memcached.PropertiesHelper;
+import com.googlecode.hibernate.memcached.MemcachedProperties;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClientFactory;
 
@@ -45,9 +45,9 @@ public class DangaMemcacheClientFactory implements HibernateMemcachedClientFacto
     public static final int DEFAULT_SOCKET_TIMEOUT = 1000 * 30;     //30 seconds
     public static final int DEFAULT_SOCKET_CONNECT_TIMEOUT = 1000 * 3;      //3 seconds
 
-    private PropertiesHelper properties;
+    private MemcachedProperties properties;
 
-    public DangaMemcacheClientFactory(PropertiesHelper properties) {
+    public DangaMemcacheClientFactory(MemcachedProperties properties) {
         this.properties = properties;
     }
 

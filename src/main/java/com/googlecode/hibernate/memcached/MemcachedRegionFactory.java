@@ -14,7 +14,6 @@
  */
 package com.googlecode.hibernate.memcached;
 
-import java.lang.reflect.Constructor;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -47,36 +46,39 @@ import com.googlecode.hibernate.memcached.region.MemcachedTimestampsRegion;
  */
 public class MemcachedRegionFactory implements RegionFactory {
 
+    private static final long serialVersionUID = 1L;
+
     private static final Logger log = LoggerFactory.getLogger(MemcachedRegionFactory.class);
-    
-    private final ConcurrentMap<String, MemcachedCache> caches = new ConcurrentHashMap<String, MemcachedCache>();
-    
-    private Properties properties;
+
     private HibernateMemcachedClient client;
+    private MemcachedProperties properties;
     private Settings settings;
-    private Config config;
-    
-    public MemcachedRegionFactory(Properties properties) {
-        this.properties = properties;
-    }
     
     public MemcachedRegionFactory() {
     }
     
+    public MemcachedRegionFactory(Properties properties) {
+        super();
+        this.properties = new MemcachedProperties(properties);
+    }
+    
+    @Override
     public void start(Settings settings, Properties properties) throws CacheException {
         log.info("Starting MemcachedClient...");
         
         this.settings = settings;
-        this.properties = properties;
-        this.config = new Config(new PropertiesHelper(properties));
-
+        this.properties = new MemcachedRegionProperties(properties);
+        
         try {
-            client = config.getMemcachedClientFactory().createMemcacheClient();
+
+            client = buildClient(this.properties);
+        
         } catch (Exception e) {
             throw new CacheException("Unable to initialize MemcachedClient", e);
         }
     }
 
+    @Override
     public void stop() {
         if (client != null) {
             log.debug("Shutting down Memcache client");
@@ -85,58 +87,55 @@ public class MemcachedRegionFactory implements RegionFactory {
         client = null;
     }
 
+    @Override
     public boolean isMinimalPutsEnabledByDefault() {
+        // use settings? settings.isMinimalPutsEnabled();
         return true;
     }
 
+    @Override
     public AccessType getDefaultAccessType() {
          return AccessType.READ_WRITE;
     }
 
+    @Override
     public long nextTimestamp() {
         return System.currentTimeMillis() / 100;
     }
 
+    @Override
     public EntityRegion buildEntityRegion(String regionName, Properties properties, CacheDataDescription metadata) throws CacheException {
-        return new MemcachedEntityRegion(getCache(regionName), settings,
-                        metadata, properties, client);
+        return new MemcachedEntityRegion(client, getRegionProperties(regionName, properties), settings, metadata);
     }
 
+    @Override
     public CollectionRegion buildCollectionRegion(String regionName, Properties properties, CacheDataDescription metadata) throws CacheException {
-        return new MemcachedCollectionRegion(getCache(regionName), settings,
-                        metadata, properties, client);
+        return new MemcachedCollectionRegion(client, getRegionProperties(regionName, properties), settings, metadata);
     }
     
     @Override
     public NaturalIdRegion buildNaturalIdRegion(String regionName, Properties properties, CacheDataDescription metadata) throws CacheException {
-        return new MemcachedNaturalIdRegion(getCache(regionName), settings,
-                metadata, properties, client);
+        return new MemcachedNaturalIdRegion(client, getRegionProperties(regionName, properties), settings, metadata);
     }
 
+    @Override
     public QueryResultsRegion buildQueryResultsRegion(String regionName, Properties properties) throws CacheException {
-        return new MemcachedQueryResultsRegion(getCache(regionName),
-                properties, client);
+        return new MemcachedQueryResultsRegion(client, getRegionProperties(regionName, properties), settings);
     }
 
+    @Override
     public TimestampsRegion buildTimestampsRegion(String regionName, Properties properties) throws CacheException {
-        return new MemcachedTimestampsRegion(getCache(regionName),
-                properties, client);
+        return new MemcachedTimestampsRegion(client, getRegionProperties(regionName, properties), settings);
     }
     
-    private MemcachedCache getCache(String regionName) {
-        /// check regionName
-        MemcachedCache cache = caches.get(regionName);
-        if (cache == null ) {
-            cache = new MemcachedCache(regionName, client);
-            cache.setCacheTimeSeconds(config.getCacheTimeSeconds(regionName));
-            cache.setKeyStrategy(config.getKeyStrategy(regionName));
-            cache.setClearSupported(config.isClearSupported(regionName));
-            cache.setDogpilePreventionEnabled(config.isDogpilePreventionEnabled(regionName));
-            cache.setDogpilePreventionExpirationFactor(config.getDogpilePreventionExpirationFactor(regionName));
-            
-            caches.put(regionName, cache);
-        }
-        
-        return cache;
+    private MemcachedRegionPropertiesHolder getRegionProperties(String region, Properties properties) {
+        MemcachedRegionProperties props = new MemcachedRegionProperties(properties);
+        MemcachedRegionPropertiesHolder holder = new MemcachedRegionPropertiesHolder(region, props);
+        return holder;
+    }
+    
+    private HibernateMemcachedClient buildClient(MemcachedProperties properties) throws Exception {
+        HibernateMemcachedClientFactory clientFactory = properties.getMemcachedClientFactory();
+        return clientFactory.createMemcacheClient();
     }
 }

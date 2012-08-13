@@ -29,7 +29,7 @@ public class TransactionalMemcachedCollectionRegionAccessStrategy
     extends AbstractMemcachedRegionAccessStrategy<MemcachedCollectionRegion> 
     implements CollectionRegionAccessStrategy {
 
-    public TransactionalMemcachedCollectionRegionAccessStrategy(MemcachedCollectionRegion region, MemcachedCache cache, Settings settings) {
+    public TransactionalMemcachedCollectionRegionAccessStrategy(MemcachedCollectionRegion region, Settings settings) {
         super(region, settings);
         throw new UnsupportedOperationException("TransactionalMemcachedCollectionRegionAccessStrategy not yet implemented");
 

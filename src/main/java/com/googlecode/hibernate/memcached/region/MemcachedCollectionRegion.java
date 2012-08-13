@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.googlecode.hibernate.memcached.MemcachedCache;
+import com.googlecode.hibernate.memcached.MemcachedRegionPropertiesHolder;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.strategy.NonStrictReadWriteMemcachedCollectionRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.ReadOnlyMemcachedCollectionRegionAccessStrategy;
@@ -40,9 +41,9 @@ public class MemcachedCollectionRegion
     
     private final Logger log = LoggerFactory.getLogger(MemcachedCollectionRegion.class);
 
-    public MemcachedCollectionRegion(MemcachedCache cache, Settings settings,
-            CacheDataDescription metadata, Properties properties, HibernateMemcachedClient client) {
-        super(cache, settings, metadata);
+    public MemcachedCollectionRegion(HibernateMemcachedClient client, 
+            MemcachedRegionPropertiesHolder properties, Settings settings, CacheDataDescription metadata) {
+        super(client, properties, settings, metadata);
     }
 
     public CollectionRegionAccessStrategy getReadOnlyRegionAccessStrategy(Settings settings) {
@@ -58,7 +59,7 @@ public class MemcachedCollectionRegion
     }
 
     public CollectionRegionAccessStrategy getTransactionalRegionAccessStrategy(Settings settings) {
-        return new TransactionalMemcachedCollectionRegionAccessStrategy(this, cache, settings);
+        return new TransactionalMemcachedCollectionRegionAccessStrategy(this, settings);
     }
 
 }

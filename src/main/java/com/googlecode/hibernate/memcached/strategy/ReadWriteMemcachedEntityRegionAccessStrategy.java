@@ -20,6 +20,7 @@ import org.hibernate.cache.spi.access.SoftLock;
 import org.hibernate.cfg.Settings;
 
 import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
+import com.googlecode.hibernate.memcached.region.MemcachedRegion;
 
 /**
  *
@@ -35,41 +36,45 @@ public class ReadWriteMemcachedEntityRegionAccessStrategy
 
     @Override
     public boolean afterInsert(Object key, Object value, Object version) throws CacheException {
-        getRegion().getCache().lock(key);
+        String objectKey = String.valueOf(key);
+        MemcachedRegion region = getRegion();
+        region.acquireWriteLock(objectKey);
+        
         try {
-            Lockable item = (Lockable) getRegion().getCache().get(key);
+            Lockable item = (Lockable) region.get(objectKey);
             if (item == null) {
-                getRegion().getCache().put(key, new Item(value, version, getRegion().nextTimestamp()));
-                return true;
+                return region.set(objectKey, new Item(value, version, region.nextTimestamp()));
             } else {
                 return false;
             }
         } finally {
-            getRegion().getCache().unlock(key);
+            region.releaseWriteLock(objectKey);
         }
     }
 
     public boolean afterUpdate(Object key, Object value, Object currentVersion, Object previousVersion, SoftLock lock) throws CacheException {
-        //what should we do with previousVersion here?
-        getRegion().getCache().lock(key);
+        String objectKey = String.valueOf(key);
+        MemcachedRegion region = getRegion();
+        region.acquireWriteLock(objectKey);
+        
         try {
-            Lockable item = (Lockable) getRegion().getCache().get(key);
+            Lockable item = (Lockable) region.get(objectKey);
             boolean unlockable = item != null && item.isUnlockable(lock);
             if (unlockable) {
                 Lock lockItem = (Lock) item;
                 if (lockItem.wasLockedConcurrently()) {
-                    decrementLock(key, lockItem);
+                    decrementLock(objectKey, lockItem);
                     return false;
                 } else {
-                    getRegion().getCache().put(key, new Item(value, currentVersion, getRegion().nextTimestamp()));
+                    region.set(objectKey, new Item(value, currentVersion, getRegion().nextTimestamp()));
                     return true;
                 }
             } else {
-                super.handleLockExpiry(key, null);
+                super.handleLockExpiry(objectKey, null);
                 return false;
             }
         } finally {
-            getRegion().getCache().unlock(key);
+            region.releaseWriteLock(objectKey);
         }
     }
 

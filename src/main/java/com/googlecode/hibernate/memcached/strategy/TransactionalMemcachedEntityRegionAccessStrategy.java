@@ -30,7 +30,7 @@ public class TransactionalMemcachedEntityRegionAccessStrategy
     extends AbstractMemcachedRegionAccessStrategy<MemcachedEntityRegion> 
     implements EntityRegionAccessStrategy {
 
-    public TransactionalMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion region, MemcachedCache cache, Settings settings) {
+    public TransactionalMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion region, Settings settings) {
         super(region, settings);
         throw new UnsupportedOperationException("TransactionalMemcachedEntityRegionAccessStrategy not yet implemented");
 

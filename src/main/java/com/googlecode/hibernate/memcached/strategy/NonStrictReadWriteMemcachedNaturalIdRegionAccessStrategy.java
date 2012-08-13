@@ -21,8 +21,7 @@ public class NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy
      */
     @Override
     public boolean afterInsert(Object key, Object value) throws CacheException {
-        getRegion().getCache().put(key, value);
-        return true;
+        return getRegion().set(String.valueOf(key), value);
     }
 
     /**
@@ -31,8 +30,7 @@ public class NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy
      */
     @Override
     public boolean afterUpdate(Object key, Object value, SoftLock lock) throws CacheException {
-        getRegion().getCache().put(key, value);
-        return true;
+        return getRegion().set(String.valueOf(key), value);
     }
 
     /**

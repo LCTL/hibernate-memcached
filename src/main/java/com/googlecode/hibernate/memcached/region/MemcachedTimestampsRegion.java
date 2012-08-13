@@ -17,10 +17,12 @@ package com.googlecode.hibernate.memcached.region;
 import java.util.Properties;
 
 import org.hibernate.cache.spi.TimestampsRegion;
+import org.hibernate.cfg.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.googlecode.hibernate.memcached.MemcachedCache;
+import com.googlecode.hibernate.memcached.MemcachedRegionPropertiesHolder;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 /**
  *
@@ -30,8 +32,8 @@ public class MemcachedTimestampsRegion extends AbstractGeneralDataRegion impleme
     
     private final Logger log = LoggerFactory.getLogger(MemcachedTimestampsRegion.class);
 
-    public MemcachedTimestampsRegion(MemcachedCache cache, Properties properties, HibernateMemcachedClient client) {
-        super(cache, properties, client);
+    public MemcachedTimestampsRegion(HibernateMemcachedClient client, MemcachedRegionPropertiesHolder properties, Settings settings) {
+        super(client, properties, settings);
     }
 
 }

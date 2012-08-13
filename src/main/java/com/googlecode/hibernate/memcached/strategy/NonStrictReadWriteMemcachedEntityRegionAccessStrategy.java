@@ -39,8 +39,7 @@ public class NonStrictReadWriteMemcachedEntityRegionAccessStrategy
      */
     @Override
     public boolean afterInsert(Object key, Object value, Object version) throws CacheException {
-        getRegion().getCache().put(key, value);
-        return true;
+        return getRegion().set(String.valueOf(key), value);
     }
 
     /**
@@ -49,8 +48,7 @@ public class NonStrictReadWriteMemcachedEntityRegionAccessStrategy
      */
     @Override
     public boolean afterUpdate(Object key, Object value, Object currentVersion, Object previousVersion, SoftLock lock) throws CacheException {
-        getRegion().getCache().put(key, value);
-        return true;
+        return getRegion().set(String.valueOf(key), value);
     }
 
     /**

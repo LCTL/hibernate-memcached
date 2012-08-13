@@ -15,7 +15,7 @@ public class AbstractNoLockMemcachedRegionAccessStrategy<T extends MemcachedRegi
 
     @Override
     public Object get(Object key, long txTimestamp) throws CacheException {
-        return getRegion().getCache().get(key);
+        return getRegion().get(String.valueOf(key));
     }
 
     @Override
@@ -25,10 +25,10 @@ public class AbstractNoLockMemcachedRegionAccessStrategy<T extends MemcachedRegi
 
     @Override
     public boolean putFromLoad(Object key, Object value, long txTimestamp, Object version, boolean minimalPutOverride) throws CacheException {
-        if (minimalPutOverride && getRegion().getCache().get(key) != null) {
+        if (minimalPutOverride && getRegion().get(String.valueOf(key)) != null) {
             return false;
         } else {
-            getRegion().getCache().put(key, value);
+            getRegion().set(String.valueOf(key), value);
             return true;
         }
     }
