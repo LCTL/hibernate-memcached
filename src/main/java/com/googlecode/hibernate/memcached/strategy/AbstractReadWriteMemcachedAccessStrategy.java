@@ -70,7 +70,7 @@ public class AbstractReadWriteMemcachedAccessStrategy <T extends MemcachedRegion
                 return null;
             }
         } finally {
-            region.releaseWriteLock(objectKey);
+            region.releaseReadLock(objectKey);
         }
     }
  
@@ -87,7 +87,7 @@ public class AbstractReadWriteMemcachedAccessStrategy <T extends MemcachedRegion
             Lockable item = (Lockable) region.get(objectKey); // problem here? t1:get t2:get t1:set t2:set
             long timeout = region.nextTimestamp() + region.getTimeout();
             final Lock lock = (item == null) ? new Lock(timeout, uuid, nextLockId(), version) : item.lock(timeout, uuid, nextLockId());
-            getRegion().set(objectKey, lock);
+            region.set(objectKey, lock);
             return lock;
         } finally {
             region.releaseWriteLock(objectKey);

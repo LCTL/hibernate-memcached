@@ -27,16 +27,17 @@ class MockMemcached implements HibernateMemcachedClient {
         cache.remove key
     }
 
-    public void incr(String key, int factor, int startingValue) {
-        Integer counter = (Integer) cache[key]
+    public long incr(String key, long factor, long startingValue) {
+        Long counter = (Long) cache[key]
         if (counter != null) {
             cache[key] = counter + 1
         } else {
             cache[key] = counter
         }
+        return counter
     }
 
-    public void decr(String key, int by, int startingValue) {
+    public long decr(String key, long by, long startingValue) {
         // implement
     }
 

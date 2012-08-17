@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- For assistance related to logback-translator or configuration  -->
+<!-- files in general, please contact the logback user mailing list -->
+<!-- at http://www.qos.ch/mailman/listinfo/logback-user             -->
+<!--                                                                -->
+<!-- For professional support please see                            -->
+<!--    http://www.qos.ch/shop/products/professionalSupport         -->
+<!--                                                                -->
+<configuration>
+  <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+    <target>System.out</target>
+    <!-- Things to look into:
+        http://logback.qos.ch/manual/layouts.html#coloring
+        http://logback.qos.ch/manual/layouts.html#log4jXMLLayout -->
+    <layout class="ch.qos.logback.classic.PatternLayout">
+        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS Z,UTC}|%thread|%.-1level|%c:%L - %m%n</pattern>
+    </layout>
+  </appender>
+
+  <root level="warn">
+    <appender-ref ref="stdout"/>
+  </root>
+  
+  <logger name="org.hibernate" level="info"/>
+  <logger name="com.googlecode.hibernate.memcached" level="trace"/>
+
+</configuration>

@@ -15,7 +15,7 @@ import org.hibernate.annotations.Type;
  * @author Ray Krueger
  */
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(region = "Contact", usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Contact {
 
     @Id

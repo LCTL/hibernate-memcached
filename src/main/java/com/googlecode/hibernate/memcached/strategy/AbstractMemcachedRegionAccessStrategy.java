@@ -67,7 +67,10 @@ public abstract class AbstractMemcachedRegionAccessStrategy<T extends MemcachedR
 
     @Override
     public void removeAll() throws CacheException {
-        region.clear();
+        if (!region.clear()) {
+            //UnsupportedOperationException?
+            throw new CacheException("Memcached does not support region level data eviction");
+        }
     }
 
     @Override

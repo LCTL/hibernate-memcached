@@ -1,17 +1,26 @@
 package com.googlecode.hibernate.memcached;
 
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import junit.framework.Assert;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.Layout;
-import org.apache.log4j.spi.ErrorHandler;
-import org.apache.log4j.spi.Filter;
-import org.apache.log4j.spi.LoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.Context;
+import ch.qos.logback.core.LogbackException;
+import ch.qos.logback.core.filter.Filter;
+import ch.qos.logback.core.spi.FilterReply;
+import ch.qos.logback.core.status.Status;
 
 /**
  * @author Ray Krueger
  */
-class MockAppender implements Appender {
+class MockAppender implements Appender<LoggingEvent> {
+
+    private final Logger log = LoggerFactory.getLogger(MockAppender.class);
 
     String expectedMessage;
     Exception expectedError;
@@ -22,52 +31,99 @@ class MockAppender implements Appender {
         this.expectedError = expectedError;
     }
 
-    public void addFilter(Filter newFilter) {
-        throw new UnsupportedOperationException();
-    }
-
-    public Filter getFilter() {
-        throw new UnsupportedOperationException();
-    }
-
-    public void clearFilters() {
-        throw new UnsupportedOperationException();
-    }
-
-    public void close() {
-    }
-
-    public void doAppend(LoggingEvent event) {
+    @Override
+	public void doAppend(LoggingEvent event) throws LogbackException {
         Assert.assertEquals(expectedMessage, event.getMessage());
-        Assert.assertEquals(expectedError, event.getThrowableInformation().getThrowable());
+        Assert.assertEquals(expectedError.getClass().getName(), event.getThrowableProxy().getClassName());
         appenderCalled = true;
     }
 
-    public String getName() {
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public void start() {
+	}
 
-    public void setErrorHandler(ErrorHandler errorHandler) {
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public void stop() {
+	}
 
-    public ErrorHandler getErrorHandler() {
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public boolean isStarted() {
+		throw new UnsupportedOperationException("isStarted");
+	}
 
-    public void setLayout(Layout layout) {
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public void setContext(Context context) {
+		throw new UnsupportedOperationException("setContext");
+	}
 
-    public Layout getLayout() {
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public Context getContext() {
+		throw new UnsupportedOperationException("getContext");
+	}
 
-    public void setName(String name) {
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public void addStatus(Status status) {
+		throw new UnsupportedOperationException("addStatus");
+	}
 
-    public boolean requiresLayout() {
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public void addInfo(String msg) {
+		throw new UnsupportedOperationException("addInfo");
+	}
+
+	@Override
+	public void addInfo(String msg, Throwable ex) {
+		throw new UnsupportedOperationException("addInfo");
+	}
+
+	@Override
+	public void addWarn(String msg) {
+		throw new UnsupportedOperationException("addWarn");
+	}
+
+	@Override
+	public void addWarn(String msg, Throwable ex) {
+		throw new UnsupportedOperationException("addWarn");
+	}
+
+	@Override
+	public void addError(String msg) {
+		throw new UnsupportedOperationException("addError");
+	}
+
+	@Override
+	public void addError(String msg, Throwable ex) {
+		throw new UnsupportedOperationException("addError");
+	}
+
+	@Override
+	public void addFilter(Filter newFilter) {
+		throw new UnsupportedOperationException("addFilter");
+	}
+
+	@Override
+	public void clearAllFilters() {
+		throw new UnsupportedOperationException("clearAllFilters");
+	}
+
+	@Override
+	public List getCopyOfAttachedFiltersList() {
+		throw new UnsupportedOperationException("getCopyOfAttachedFiltersList");
+	}
+
+	@Override
+	public FilterReply getFilterChainDecision(LoggingEvent event) {
+		throw new UnsupportedOperationException("getFilterChainDecision");
+	}
+
+	@Override
+	public String getName() {
+		throw new UnsupportedOperationException("getName");
+	}
+
+	@Override
+	public void setName(String name) {
+		throw new UnsupportedOperationException("setName");
+	}
+
 }

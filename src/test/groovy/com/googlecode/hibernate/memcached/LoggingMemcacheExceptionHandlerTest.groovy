@@ -1,11 +1,8 @@
 package com.googlecode.hibernate.memcached
 
-import org.apache.log4j.Appender
-import org.apache.log4j.Layout
-import org.apache.log4j.Logger
-import org.apache.log4j.spi.ErrorHandler
-import org.apache.log4j.spi.Filter
-import org.apache.log4j.spi.LoggingEvent
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import org.slf4j.LoggerFactory
 import org.junit.Assert
 
 /**
@@ -14,11 +11,15 @@ import org.junit.Assert
  */
 class LoggingMemcacheExceptionHandlerTest extends BaseTestCase {
 
-    def handler = new LoggingMemcacheExceptionHandler()
-    Logger logger = Logger.getLogger(LoggingMemcacheExceptionHandler)
+    LoggingMemcacheExceptionHandler handler
+    Logger logger
 
     protected void setUp() {
-        logger.removeAllAppenders()
+        handler = new LoggingMemcacheExceptionHandler()
+
+        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+        logger = lc.getLogger(LoggingMemcacheExceptionHandler)
+        logger.detachAndStopAllAppenders()
     }
 
     void testDelete() {

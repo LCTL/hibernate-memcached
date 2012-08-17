@@ -11,6 +11,6 @@ public interface MemcacheExceptionHandler {
 
     void handleErrorOnDelete(String key, Exception e);
 
-    void handleErrorOnIncr(String key, int factor, int startingValue, Exception e);
+    void handleErrorOnIncr(String key, long factor, long startingValue, Exception e);
 
 }

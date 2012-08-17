@@ -79,7 +79,7 @@ public class MemcachedRegionProperties extends MemcachedProperties {
     // Helper Methods
     
     private String get(String key, String region, String defaultVal) {
-        String globalVal = get(makeKey(key));
+        String globalVal = get(makeKey(key), defaultVal);
         return get(makeKey(key, region), globalVal);
     }
 

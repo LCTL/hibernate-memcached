@@ -33,11 +33,13 @@ import org.slf4j.LoggerFactory;
 
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClientFactory;
+import com.googlecode.hibernate.memcached.concurrent.keylock.MemcachedRegionReadWriteKeyLockProvider;
 import com.googlecode.hibernate.memcached.region.MemcachedCollectionRegion;
 import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
 import com.googlecode.hibernate.memcached.region.MemcachedNaturalIdRegion;
 import com.googlecode.hibernate.memcached.region.MemcachedQueryResultsRegion;
 import com.googlecode.hibernate.memcached.region.MemcachedTimestampsRegion;
+import com.googlecode.hibernate.memcached.strategy.clear.MemcachedRegionClearStrategy;
 
 
 /**
@@ -131,6 +133,8 @@ public class MemcachedRegionFactory implements RegionFactory {
     private MemcachedRegionPropertiesHolder getRegionProperties(String region, Properties properties) {
         MemcachedRegionProperties props = new MemcachedRegionProperties(properties);
         MemcachedRegionPropertiesHolder holder = new MemcachedRegionPropertiesHolder(region, props);
+        holder.setClearStrategy(new MemcachedRegionClearStrategy(client, holder));
+        holder.setReadWriteKeyLockProvider(new MemcachedRegionReadWriteKeyLockProvider(client, holder));
         return holder;
     }
     

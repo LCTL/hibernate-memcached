@@ -22,7 +22,8 @@ public class LoggingMemcacheExceptionHandler implements MemcacheExceptionHandler
         log.warn("Cache 'delete' failed for key [" + key + "]", e);
     }
 
-    public void handleErrorOnIncr(String key, int factor, int startingValue, Exception e) {
+    public void handleErrorOnIncr(String key, long factor, long startingValue, Exception e) {
         log.warn("Cache 'incr' failed for key [" + key + "]", e);
     }
+
 }

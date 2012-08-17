@@ -26,9 +26,9 @@ public interface HibernateMemcachedClient {
 
     void delete(String key);
 
-    void incr(String key, int factor, int startingValue);
+    long incr(String key, long factor, long startingValue);
     
-    void decr(String key, int by, int startingValue);
+    long decr(String key, long by, long startingValue);
 
     void shutdown();
 }

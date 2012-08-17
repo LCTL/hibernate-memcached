@@ -78,17 +78,21 @@ public class DangaMemcache implements HibernateMemcachedClient {
         }
     }
 
-    public void incr(String key, int factor, int startingValue) {
+    public long incr(String key, long factor, long startingValue) {
+        long rv = -1;
+        
         try {
             //Try to incr
-            long rv = memcachedClient.incr(key, factor);
+            rv = memcachedClient.incr(key, factor);
 
             //If the key is not found, add it with startingValue
             if (-1 == rv)
-                memcachedClient.addOrIncr(key, startingValue);
+                rv = memcachedClient.addOrIncr(key, startingValue);
         } catch (Exception e) {
             exceptionHandler.handleErrorOnIncr(key, factor, startingValue, e);
         }
+        
+        return rv;
     }
 
     public void shutdown() {
@@ -110,8 +114,8 @@ public class DangaMemcache implements HibernateMemcachedClient {
 	}
 
 	@Override
-	public void decr(String key, int by, int startingValue) {
+	public long decr(String key, long by, long startingValue) {
 		// TODO Auto-generated method stub
-		
+		return 0;
 	}
 }

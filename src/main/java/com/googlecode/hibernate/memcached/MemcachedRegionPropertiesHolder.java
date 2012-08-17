@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.memcached;
 
+import com.googlecode.hibernate.memcached.concurrent.keylock.ReadWriteKeyLockProvider;
+import com.googlecode.hibernate.memcached.strategy.clear.ClearStrategy;
 import com.googlecode.hibernate.memcached.strategy.key.KeyStrategy;
 
 public class MemcachedRegionPropertiesHolder {
@@ -14,6 +16,9 @@ public class MemcachedRegionPropertiesHolder {
     private KeyStrategy keyStrategy;
     private boolean dogpilePreventionEnabled;
     private int dogpilePreventionExpirationFactor;
+    
+    private ClearStrategy clearStrategy;
+    private ReadWriteKeyLockProvider readWriteKeyLockProvider;
     
     public MemcachedRegionPropertiesHolder(String name, MemcachedRegionProperties properties) {
         this.name = name;
@@ -109,7 +114,23 @@ public class MemcachedRegionPropertiesHolder {
         this.namespaceSeparator = namespaceSeparator;
     }
 
-    @Override
+    public ClearStrategy getClearStrategy() {
+        return clearStrategy;
+    }
+
+    public void setClearStrategy(ClearStrategy clearStrategy) {
+        this.clearStrategy = clearStrategy;
+    }
+
+    public ReadWriteKeyLockProvider getReadWriteKeyLockProvider() {
+        return readWriteKeyLockProvider;
+    }
+
+    public void setReadWriteKeyLockProvider(ReadWriteKeyLockProvider readWriteKeyLockProvider) {
+        this.readWriteKeyLockProvider = readWriteKeyLockProvider;
+    }
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
         if (!(o instanceof MemcachedRegionPropertiesHolder)) { return false; }

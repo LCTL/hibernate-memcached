@@ -1,6 +1,7 @@
 package com.googlecode.hibernate.memcached.client.spymemcached;
 
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import net.spy.memcached.MemcachedClient;
 
@@ -60,8 +61,15 @@ public class SpyMemcache implements HibernateMemcachedClient {
     
     // TODO: implement correctly
     public boolean add(String key, int exp, Object o) {
-    	memcachedClient.add(key, exp, o);
-    	return false;
+        try {
+            return memcachedClient.add(key, exp, o).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        
+        return false;
     }
 
     public void delete(String key) {
@@ -72,20 +80,23 @@ public class SpyMemcache implements HibernateMemcachedClient {
         }
     }
 
-    public void incr(String key, int factor, int startingValue) {
+    public long incr(String key, long factor, long startingValue) {
         try {
-            memcachedClient.incr(key, factor, startingValue);
+            return memcachedClient.incr(key, factor, startingValue);
         } catch (Exception e) {
             exceptionHandler.handleErrorOnIncr(key, factor, startingValue, e);
         }
+        
+        return -1;
     }
     
-    public void decr(String key, int by, int startingValue) {
+    public long decr(String key, long by, long startingValue) {
         try {
-            memcachedClient.decr(key, by, startingValue);
+            return memcachedClient.decr(key, by, startingValue);
         } catch (Exception e) {
             exceptionHandler.handleErrorOnIncr(key, by, startingValue, e);
         }
+        return -1;
     }
 
     public void shutdown() {

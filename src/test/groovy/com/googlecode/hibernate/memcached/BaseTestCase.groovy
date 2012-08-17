@@ -5,7 +5,4 @@ package com.googlecode.hibernate.memcached
  */
 abstract class BaseTestCase extends groovy.util.GroovyTestCase {
 
-    static {
-        LoggingConfig.initializeLogging()
-    }
 }

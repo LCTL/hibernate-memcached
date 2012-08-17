@@ -24,6 +24,9 @@ import org.slf4j.LoggerFactory;
 
 import com.googlecode.hibernate.memcached.MemcachedRegionPropertiesHolder;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
+import com.googlecode.hibernate.memcached.concurrent.keylock.ReadWriteKeyLockProvider;
+import com.googlecode.hibernate.memcached.strategy.clear.ClearStrategy;
+import com.googlecode.hibernate.memcached.strategy.clear.MemcachedRegionClearStrategy;
 import com.googlecode.hibernate.memcached.strategy.key.KeyStrategy;
 
 /**
@@ -43,20 +46,16 @@ public class AbstractMemcachedRegion
     protected MemcachedRegionPropertiesHolder properties;
     private Settings settings; 
     
-    private final String clearIndexKey;
+    private final ClearStrategy clearStrategy;
+    private ReadWriteKeyLockProvider lockProvider;
     
     AbstractMemcachedRegion(HibernateMemcachedClient client, MemcachedRegionPropertiesHolder properties, Settings settings) {
         this.client = client;
         this.properties = properties;
         this.settings = settings;
         
-        //if (getName() == null) { setName(""); }
-        
-        this.clearIndexKey = new StringBuilder()
-            .append(getClearIndexKeyPrefix())
-            .append(getNamespaceSeparator())
-            .append(getName().replaceAll("\\s", ""))
-            .toString();
+        this.clearStrategy = properties.getClearStrategy();
+        this.lockProvider = properties.getReadWriteKeyLockProvider();
     }
     
     // Region methods
@@ -166,13 +165,13 @@ public class AbstractMemcachedRegion
     }
 
     @Override
-    public void incr(String key, int factor, int startingValue) {
-        client.incr(toKey(key), factor, startingValue);
+    public long incr(String key, long factor, long startingValue) {
+        return client.incr(toKey(key), factor, startingValue);
     }
 
     @Override
-    public void decr(String key, int by, int startingValue) {
-        client.decr(toKey(key), by, startingValue);
+    public long decr(String key, long by, long startingValue) {
+        return client.decr(toKey(key), by, startingValue);
     }
 
     @Override
@@ -182,17 +181,9 @@ public class AbstractMemcachedRegion
 
     // Other Methods
     
-    /**
-     * Clear functionality is disabled by default.
-     * Read this class's javadoc for more detail.
-     *
-     * @throws CacheException
-     * @see com.googlecode.hibernate.memcached.MemcachedCache
-     */
-    public void clear() throws CacheException {
-        if (isClearSupported()) {
-            incr(clearIndexKey, 1, 1);
-        }
+
+    public boolean clear() throws CacheException {
+        return clearStrategy.clear();
     }
     
     // Properties delegators (allow setting?)
@@ -233,6 +224,28 @@ public class AbstractMemcachedRegion
 		return properties.getNamespaceSeparator();
 	}
 
+    // ReadWriteKeyLockProvider methods
+    
+    @Override
+    public boolean acquireReadLock(String key) {
+        return lockProvider.acquireReadLock(key);
+    }
+
+    @Override
+    public boolean releaseReadLock(String key) {
+        return lockProvider.releaseReadLock(key);
+    }
+
+    @Override
+    public boolean acquireWriteLock(String key) {
+        return lockProvider.acquireWriteLock(key);
+    }
+
+    @Override
+    public boolean releaseWriteLock(String key) {
+        return lockProvider.releaseWriteLock(key);
+    }
+
     // Object methods
 
     public String toString() {
@@ -258,27 +271,7 @@ public class AbstractMemcachedRegion
     }
     
     private String toKey(Object key) {
-        return getKeyStrategy().toKey(getName(), getClearIndex(), key);
-    }
-    
-    private long getClearIndex() {
-        long index = 0L;
-
-        if (isClearSupported()) {
-            Object value = client.get(clearIndexKey);
-            if (value != null) {
-                if (value instanceof String) {
-                    index = Long.valueOf((String) value);
-                } else if (value instanceof Long) {
-                    index = (Long) value;
-                } else {
-                    throw new IllegalArgumentException(
-                            "Unsupported type [" + value.getClass() + "] found for clear index at cache key [" + clearIndexKey + "]");
-                }
-            }
-        }
-
-        return index;
+        return getKeyStrategy().toKey(getName(), clearStrategy.getClearIndex(), key);
     }
     
     private Map<String, Object> getMultiUsingDogpilePrevention(String ... objectKeys) {
@@ -310,28 +303,4 @@ public class AbstractMemcachedRegion
         return objectKey + ".dogpileTokenKey";
     }
 
-	@Override
-	public void acquireReadLock(String key) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void releaseReadLock(String key) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void acquireWriteLock(String key) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void releaseWriteLock(String key) {
-		// TODO Auto-generated method stub
-		
-	}
-    
 }
