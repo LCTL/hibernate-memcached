@@ -14,20 +14,22 @@
  */
 package com.googlecode.hibernate.memcached.strategy;
 
+import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.access.CollectionRegionAccessStrategy;
-import org.hibernate.cfg.Settings;
 
 import com.googlecode.hibernate.memcached.region.MemcachedCollectionRegion;
 
 /**
  *
  * @author kcarlson
+ * 
+ * @see AccessType#READ_WRITE
  */
 public class ReadWriteMemcachedCollectionRegionAccessStrategy
     extends AbstractReadWriteMemcachedAccessStrategy<MemcachedCollectionRegion>
     implements CollectionRegionAccessStrategy {
 
-    public ReadWriteMemcachedCollectionRegionAccessStrategy(MemcachedCollectionRegion region, Settings settings) {
-        super(region, settings, region.getCacheDataDescription());
+    public ReadWriteMemcachedCollectionRegionAccessStrategy(MemcachedCollectionRegion region) {
+        super(region, region.getCacheDataDescription());
     }
 }

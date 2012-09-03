@@ -1,18 +1,22 @@
 package com.googlecode.hibernate.memcached.strategy;
 
 import org.hibernate.cache.CacheException;
+import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.access.NaturalIdRegionAccessStrategy;
 import org.hibernate.cache.spi.access.SoftLock;
 import org.hibernate.cfg.Settings;
 
 import com.googlecode.hibernate.memcached.region.MemcachedNaturalIdRegion;
 
+/**
+ * @see AccessType#READ_ONLY
+ */
 public class ReadOnlyMemcachedNaturalIdRegionAccessStrategy 
     extends AbstractNoLockMemcachedRegionAccessStrategy<MemcachedNaturalIdRegion>
     implements NaturalIdRegionAccessStrategy {
 
-    public ReadOnlyMemcachedNaturalIdRegionAccessStrategy(MemcachedNaturalIdRegion region, Settings settings) {
-        super(region, settings);
+    public ReadOnlyMemcachedNaturalIdRegionAccessStrategy(MemcachedNaturalIdRegion region) {
+        super(region);
     }
 
     /**

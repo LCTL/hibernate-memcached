@@ -14,23 +14,25 @@
  */
 package com.googlecode.hibernate.memcached.strategy;
 
-import com.googlecode.hibernate.memcached.MemcachedCache;
-import com.googlecode.hibernate.memcached.region.MemcachedCollectionRegion;
 import org.hibernate.cache.CacheException;
+import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.access.CollectionRegionAccessStrategy;
 import org.hibernate.cache.spi.access.SoftLock;
-import org.hibernate.cfg.Settings;
+
+import com.googlecode.hibernate.memcached.region.MemcachedCollectionRegion;
 
 /**
  *
  * @author kcarlson
+ * 
+ * @see AccessType#TRANSACTIONAL
  */
 public class TransactionalMemcachedCollectionRegionAccessStrategy
     extends AbstractMemcachedRegionAccessStrategy<MemcachedCollectionRegion> 
     implements CollectionRegionAccessStrategy {
 
-    public TransactionalMemcachedCollectionRegionAccessStrategy(MemcachedCollectionRegion region, Settings settings) {
-        super(region, settings);
+    public TransactionalMemcachedCollectionRegionAccessStrategy(MemcachedCollectionRegion region) {
+        super(region);
         throw new UnsupportedOperationException("TransactionalMemcachedCollectionRegionAccessStrategy not yet implemented");
 
     }
@@ -56,6 +58,12 @@ public class TransactionalMemcachedCollectionRegionAccessStrategy
 
 	@Override
 	public void unlockItem(Object key, SoftLock lock) throws CacheException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void remove(Object key) throws CacheException {
 		// TODO Auto-generated method stub
 		
 	}

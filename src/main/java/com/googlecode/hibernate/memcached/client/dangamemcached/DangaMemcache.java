@@ -52,7 +52,7 @@ public class DangaMemcache implements HibernateMemcachedClient {
         try {
             return memcachedClient.getMulti(keys);
         } catch (Exception e) {
-            exceptionHandler.handleErrorOnGet(StringUtils.join(keys, ", "), e);
+            exceptionHandler.handleErrorOnGet(StringUtils.join(", ", keys), e);
         }
         return null;
     }
@@ -70,12 +70,14 @@ public class DangaMemcache implements HibernateMemcachedClient {
         return false;
     }
 
-    public void delete(String key) {
+    public boolean delete(String key) {
         try {
             memcachedClient.delete(key);
         } catch (Exception e) {
             exceptionHandler.handleErrorOnDelete(key, e);
         }
+        
+        return false;
     }
 
     public long incr(String key, long factor, long startingValue) {

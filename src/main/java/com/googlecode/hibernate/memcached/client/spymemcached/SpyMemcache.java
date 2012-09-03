@@ -1,5 +1,6 @@
 package com.googlecode.hibernate.memcached.client.spymemcached;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -40,12 +41,13 @@ public class SpyMemcache implements HibernateMemcachedClient {
     }
 
     public Map<String, Object> getMulti(String... keys) {
+        Map<String, Object> result = null;
         try {
-            return memcachedClient.getBulk(keys);
+            result = memcachedClient.getBulk(keys);
         } catch (Exception e) {
-            exceptionHandler.handleErrorOnGet(StringUtils.join(keys, ", "), e);
+            exceptionHandler.handleErrorOnGet(StringUtils.join(", ", keys), e);
         }
-        return null;
+        return result == null ? new HashMap<String,Object>(0) : result;
     }
 
     public boolean set(String key, int cacheTimeSeconds, Object o) {
@@ -72,12 +74,13 @@ public class SpyMemcache implements HibernateMemcachedClient {
         return false;
     }
 
-    public void delete(String key) {
+    public boolean delete(String key) {
         try {
-            memcachedClient.delete(key);
+            return memcachedClient.delete(key).get();
         } catch (Exception e) {
             exceptionHandler.handleErrorOnDelete(key, e);
         }
+        return false;
     }
 
     public long incr(String key, long factor, long startingValue) {

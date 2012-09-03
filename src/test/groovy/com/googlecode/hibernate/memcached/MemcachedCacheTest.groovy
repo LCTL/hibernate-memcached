@@ -6,7 +6,7 @@ import com.googlecode.hibernate.memcached.strategy.key.*
  * @author Ray Krueger
  */
 class MemcachedCacheTest extends BaseTestCase {
-
+/*
     MemcachedCache cache
 
     void test_basics() {
@@ -51,5 +51,5 @@ class MemcachedCacheTest extends BaseTestCase {
         assertEquals "value", mockCache.cache["region:0:3556498"]
         assertEquals MemcachedCache.DOGPILE_TOKEN, mockCache.cache["region:0:3556498.dogpileTokenKey"]
     }
-
+*/
 }

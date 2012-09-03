@@ -5,15 +5,15 @@ import com.googlecode.hibernate.memcached.BaseTestCase
 class StringUtilsTest extends BaseTestCase {
 
     void test_simple_join() {
-        assertEquals "1, 2, 3", StringUtils.join([1, 2, 3] as Object[], ", ")
+        assertEquals "1, 2, 3", StringUtils.join(", ", [1, 2, 3] as Object[])
     }
 
     void test_empty_join() {
-        assertEquals "", StringUtils.join([] as Object[], ", ")
+        assertEquals "", StringUtils.join(", ", [] as Object[])
     }
 
     void test_null_join () {
-        assertNull StringUtils.join(null, ",")
+        assertEquals "", StringUtils.join(", ", (String) null)
     }
 
     void test_md5_hex () {

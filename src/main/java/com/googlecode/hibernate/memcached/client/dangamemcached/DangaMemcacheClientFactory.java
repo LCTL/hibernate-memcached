@@ -51,7 +51,7 @@ public class DangaMemcacheClientFactory implements HibernateMemcachedClientFacto
         this.properties = properties;
     }
 
-    public HibernateMemcachedClient createMemcacheClient() throws Exception {
+    public HibernateMemcachedClient createMemcacheClient()  {
         String poolName = getPoolName();
 
         // grab an instance of our connection pool

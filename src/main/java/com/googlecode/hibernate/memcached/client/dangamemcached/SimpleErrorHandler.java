@@ -30,7 +30,7 @@ public class SimpleErrorHandler implements ErrorHandler {
 
     public void handleErrorOnGet(MemCachedClient client, Throwable error,
                                  String[] cacheKeys) {
-        handleErrorOnGet(client, error, StringUtils.join(cacheKeys, ", "));
+        handleErrorOnGet(client, error, StringUtils.join(", ", cacheKeys));
     }
 
     public void handleErrorOnInit(MemCachedClient client, Throwable error) {

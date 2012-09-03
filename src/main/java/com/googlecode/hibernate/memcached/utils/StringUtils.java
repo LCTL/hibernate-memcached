@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import com.googlecode.hibernate.memcached.LoggingMemcacheExceptionHandler;
 
 /**
+ * A utility class for {@link String}s.
+ * 
  * @author Ray Krueger
  */
 public class StringUtils {
@@ -23,24 +25,54 @@ public class StringUtils {
             '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
     };
 
-    public static String join(Object[] array, String separator) {
-        if (array == null) {
-            return null;
+    /**
+     * Joins a collection of objects together as a <code>String</code> delimited
+     * by the given separator. <code>Object</code>s are converted to 
+     * <code>String</code>s using {@link String#valueOf(Object)}.
+     * 
+     * @param separator the <code>String</code> used to delimit the given
+     *                  <code>Object</code>s
+     * @param objects   the <code>Object</code>s to be used in constructing the
+     *                  <code>String</code>
+     * @return          a <code>String</code> of the form: 
+     *                  [obj1][separator][obj2][separator]...[separator][objN]
+     */
+    public static String join(String separator, Object ... objects) {
+        if (objects == null) {
+            return "";
         }
-        int arraySize = array.length;
+        
         StringBuilder buffer = new StringBuilder();
-
-        for (int i = 0; i < arraySize; i++) {
+        for (int i = 0; i < objects.length; i++) {
             if (i > 0) {
                 buffer.append(separator);
             }
-            if (array[i] != null) {
-                buffer.append(array[i]);
+            if (objects[i] != null) {
+                buffer.append(objects[i]);
             }
         }
         return buffer.toString();
     }
+    
+    /**
+     * Joins a collection of <code>String</code>s together delimited by the
+     * given separator.
+     * 
+     * @param separator the <code>String</code> to be used as a delimiter
+     * @param strings   the <code>String</code>s to be joined
+     * @return          a <code>String</code> of the form: 
+     *                  [str1][separator][str2][separator]...[separator][strN]
+     */
+    public static String join(String separator, String ... strings) {
+        return join(separator, (Object[]) strings);
+    }
 
+    /**
+     * Encodes a <code>String</code> using the MD5 hashing algorithm.
+     * 
+     * @param data the <code>String</code> to encode
+     * @return     the hashed data expressed as a hex <code>String</code>
+     */
     public static String md5Hex(String data) {
         if (data == null) {
             throw new IllegalArgumentException("data must not be null");
@@ -51,6 +83,12 @@ public class StringUtils {
         return toHexString(bytes);
     }
 
+    /**
+     * Encodes a <code>String</code> using the SHA1 hashing algorithm.
+     * 
+     * @param data the <code>String</code> to encode
+     * @return     the hashed data expressed as a hex <code>String</code>
+     */
     public static String sha1Hex(String data) {
         if (data == null) {
             throw new IllegalArgumentException("data must not be null");
@@ -61,6 +99,34 @@ public class StringUtils {
         return toHexString(bytes);
     }
     
+    /**
+     * Encodes a <code>String</code> using the SHA256 hashing algorithm.
+     * 
+     * @param data the <code>String</code> to encode
+     * @return     the hashed data expressed as a hex <code>String</code>
+     */
+    public static String sha256Hex(String data) {
+        if (data == null) {
+            throw new IllegalArgumentException("data must not be null");
+        }
+
+        byte[] bytes = digest("SHA256", data);
+
+        return toHexString(bytes);
+    }
+    
+    /**
+     * Creates a new instance of a class with the given name, instantiated with
+     * the given arguments.
+     * <br>
+     * TODO: Improve constructor lookup?
+     * 
+     * @param className the fully qualified name of the desired class
+     * @param args      the arguments used when instantiating the
+     *                  <code>Object</code>
+     * @return          a new <code>Object</code> of the desired class,
+     *                  or <code>null</code>
+     */
     public static <T extends Object> T newInstance(String className, Object ... args) {
         T result = null;
         
@@ -100,6 +166,12 @@ public class StringUtils {
         return result;
     }
 
+    /**
+     * Converts a <code>byte[]</code> into a hex <code>String</code>.
+     * 
+     * @param bytes the bytes to turn into a hex <code>String</code>
+     * @return      a hex <code>String</code>
+     */
     private static String toHexString(byte[] bytes) {
         int l = bytes.length;
 
@@ -113,6 +185,15 @@ public class StringUtils {
         return new String(out);
     }
 
+    /**
+     * Converts a <code>String</code> into a <code>byte[]</code> using the
+     * given algorithm.
+     * 
+     * @param algorithm the name of the digest algorithm
+     * @param data      the data to convert
+     * @return          the resulting <code>byte[]</code>
+     * @see             MessageDigest
+     */
     private static byte[] digest(String algorithm, String data) {
         MessageDigest digest;
         try {

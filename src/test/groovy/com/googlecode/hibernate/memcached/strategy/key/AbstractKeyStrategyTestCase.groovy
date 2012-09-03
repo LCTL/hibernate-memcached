@@ -8,7 +8,7 @@ import com.googlecode.hibernate.memcached.*
  * @author Ray Krueger
  */
 abstract class AbstractKeyStrategyTestCase extends BaseTestCase {
-
+/*
     protected KeyStrategy strategy
 
     protected void setUp() {
@@ -27,5 +27,5 @@ abstract class AbstractKeyStrategyTestCase extends BaseTestCase {
     }
 
     abstract KeyStrategy getKeyStrategy();
-
+*/
 }

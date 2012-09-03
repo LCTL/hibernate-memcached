@@ -1,6 +1,7 @@
 package com.googlecode.hibernate.memcached;
 
 import com.googlecode.hibernate.memcached.strategy.key.*
+import com.googlecode.hibernate.memcached.strategy.key.encoding.*
 import com.googlecode.hibernate.memcached.region.*
 import org.hibernate.cache.spi.CacheDataDescription
 import org.hibernate.cache.internal.CacheDataDescriptionImpl
@@ -35,35 +36,37 @@ class MemcachedRegionFactoryTest extends BaseTestCase {
         assertNotNull(region)
 
         //assert Defaults
-        assertFalse(region.isClearSupported())
-        assertEquals(300, region.getCacheTimeSeconds())
-        assertEquals Sha1KeyStrategy.class, region.getKeyStrategy().class
+        assertFalse(region.getSettings().isClearSupported())
+        assertEquals(300, region.getSettings().getCacheTimeSeconds())
+        assertEquals ToStringKeyStrategy.class, region.getSettings().getKeyStrategy().class
+        assertEquals Sha1KeyEncodingStrategy.class, region.getSettings().getKeyEncodingStrategy().class
     }
 
     void test_region_properties() {
         properties.setProperty "hibernate.memcached.serverList", "127.0.0.1:11211"
         properties.setProperty "hibernate.memcached.test.cacheTimeSeconds", "500"
         properties.setProperty "hibernate.memcached.test.clearSupported", "true"
-        properties.setProperty "hibernate.memcached.test.keyStrategy", StringKeyStrategy.class.getName()
+        properties.setProperty "hibernate.memcached.test.keyEncodingStrategy", NonEncodingKeyEncodingStrategy.class.getName()
 
         regionFactory.start(settings, properties)
         MemcachedQueryResultsRegion region = (MemcachedQueryResultsRegion) regionFactory.buildQueryResultsRegion("test", properties)
         assertNotNull(region)
 
         //assert Defaults
-        assertTrue(region.isClearSupported())
-        assertEquals(500, region.getCacheTimeSeconds())
-        assertEquals(StringKeyStrategy.class, region.getKeyStrategy().class)
+        assertTrue(region.getSettings().isClearSupported())
+        assertEquals(500, region.getSettings().getCacheTimeSeconds())
+        assertEquals ToStringKeyStrategy.class, region.getSettings().getKeyStrategy().class
+        assertEquals NonEncodingKeyEncodingStrategy.class, region.getSettings().getKeyEncodingStrategy().class
     }
 
-    void test_string_key_strategy() {
-        properties.setProperty("hibernate.memcached.keyStrategy", StringKeyStrategy.class.getName())
+    void test_non_encoding_key_encoding_strategy() {
+        properties.setProperty("hibernate.memcached.keyEncodingStrategy", NonEncodingKeyEncodingStrategy.class.getName())
 
         regionFactory.start(settings, properties)
         MemcachedQueryResultsRegion region = (MemcachedQueryResultsRegion) regionFactory.buildQueryResultsRegion("test", properties)
         assertNotNull(region)
 
-        assertEquals(StringKeyStrategy.class, region.getKeyStrategy().class)
+        assertEquals NonEncodingKeyEncodingStrategy.class, region.getSettings().getKeyEncodingStrategy().class
     }
 
     void tearDown() {

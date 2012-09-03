@@ -15,24 +15,22 @@
 package com.googlecode.hibernate.memcached.region;
 
 
-import java.util.Properties;
-
 import org.hibernate.cache.spi.CacheDataDescription;
+import org.hibernate.cache.spi.CollectionRegion;
 import org.hibernate.cache.spi.EntityRegion;
 import org.hibernate.cache.spi.access.EntityRegionAccessStrategy;
-import org.hibernate.cfg.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.googlecode.hibernate.memcached.MemcachedCache;
-import com.googlecode.hibernate.memcached.MemcachedRegionPropertiesHolder;
+import com.googlecode.hibernate.memcached.MemcachedRegionSettings;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.strategy.NonStrictReadWriteMemcachedEntityRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.ReadOnlyMemcachedEntityRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.ReadWriteMemcachedEntityRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.TransactionalMemcachedEntityRegionAccessStrategy;
 /**
- *
+ * Implements the {@link EntityRegion} interface.
+ * 
  * @author kcarlson
  */
 public class MemcachedEntityRegion
@@ -41,25 +39,35 @@ public class MemcachedEntityRegion
     
     private final Logger log = LoggerFactory.getLogger(MemcachedEntityRegion.class);
     
-    public MemcachedEntityRegion(HibernateMemcachedClient client, 
-            MemcachedRegionPropertiesHolder properties, Settings settings, CacheDataDescription metadata) {
-        super(client, properties, settings, metadata);
+    /**
+     * Creates a new {@link MemcachedEntityRegion}.
+     * 
+     * @param client               the client used to access Memcached
+     * @param settings             the settings for this region
+     * @param cacheDataDescription the metadata for this region
+     */
+    public MemcachedEntityRegion(HibernateMemcachedClient client, MemcachedRegionSettings settings, CacheDataDescription cacheDataDescription) {
+        super(client, settings, cacheDataDescription);
     }
 
-    public EntityRegionAccessStrategy getReadOnlyRegionAccessStrategy(Settings settings) {
-        return new ReadOnlyMemcachedEntityRegionAccessStrategy(this, settings);
+    @Override
+    public EntityRegionAccessStrategy getReadOnlyRegionAccessStrategy() {
+        return new ReadOnlyMemcachedEntityRegionAccessStrategy(this);
     }
 
-    public EntityRegionAccessStrategy getReadWriteRegionAccessStrategy(Settings settings) {
-        return new ReadWriteMemcachedEntityRegionAccessStrategy(this, settings);
+    @Override
+    public EntityRegionAccessStrategy getReadWriteRegionAccessStrategy() {
+        return new ReadWriteMemcachedEntityRegionAccessStrategy(this);
     }
 
-    public EntityRegionAccessStrategy getNonStrictReadWriteRegionAccessStrategy(Settings settings) {
-        return new NonStrictReadWriteMemcachedEntityRegionAccessStrategy(this, settings);
+    @Override
+    public EntityRegionAccessStrategy getNonStrictReadWriteRegionAccessStrategy() {
+        return new NonStrictReadWriteMemcachedEntityRegionAccessStrategy(this);
     }
 
-    public EntityRegionAccessStrategy getTransactionalRegionAccessStrategy(Settings settings) {
-        return new TransactionalMemcachedEntityRegionAccessStrategy(this, settings);
+    @Override
+    public EntityRegionAccessStrategy getTransactionalRegionAccessStrategy() {
+        return new TransactionalMemcachedEntityRegionAccessStrategy(this);
     }
 
 }

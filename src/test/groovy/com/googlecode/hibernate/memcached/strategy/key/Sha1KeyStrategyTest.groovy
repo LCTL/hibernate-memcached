@@ -6,7 +6,7 @@ package com.googlecode.hibernate.memcached.strategy.key
  * @author Ray Krueger
  */
 class Sha1KeyStrategyTest extends AbstractKeyStrategyTestCase {
-
+/*
     public KeyStrategy getKeyStrategy() {
         return new Sha1KeyStrategy()
     }
@@ -32,5 +32,5 @@ class Sha1KeyStrategyTest extends AbstractKeyStrategyTestCase {
         250.times {regionName += "x"}
         assert_cache_key_equals "7f00c6faf1fefaf62cabb512285cc60ce641d5c8", regionName, 0, "blah blah blah"
     }
-
+*/
 }

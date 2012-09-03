@@ -23,8 +23,9 @@ class MockMemcached implements HibernateMemcachedClient {
         return false;
     }
 
-    public void delete(String key) {
+    public boolean delete(String key) {
         cache.remove key
+        return true
     }
 
     public long incr(String key, long factor, long startingValue) {

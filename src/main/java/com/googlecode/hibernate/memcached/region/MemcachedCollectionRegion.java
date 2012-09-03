@@ -14,17 +14,13 @@
  */
 package com.googlecode.hibernate.memcached.region;
 
-import java.util.Properties;
-
 import org.hibernate.cache.spi.CacheDataDescription;
 import org.hibernate.cache.spi.CollectionRegion;
 import org.hibernate.cache.spi.access.CollectionRegionAccessStrategy;
-import org.hibernate.cfg.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.googlecode.hibernate.memcached.MemcachedCache;
-import com.googlecode.hibernate.memcached.MemcachedRegionPropertiesHolder;
+import com.googlecode.hibernate.memcached.MemcachedRegionSettings;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.strategy.NonStrictReadWriteMemcachedCollectionRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.ReadOnlyMemcachedCollectionRegionAccessStrategy;
@@ -32,7 +28,8 @@ import com.googlecode.hibernate.memcached.strategy.ReadWriteMemcachedCollectionR
 import com.googlecode.hibernate.memcached.strategy.TransactionalMemcachedCollectionRegionAccessStrategy;
 
 /**
- *
+ * Implements the {@link CollectionRegion} interface.
+ * 
  * @author kcarlson
  */
 public class MemcachedCollectionRegion
@@ -41,25 +38,35 @@ public class MemcachedCollectionRegion
     
     private final Logger log = LoggerFactory.getLogger(MemcachedCollectionRegion.class);
 
-    public MemcachedCollectionRegion(HibernateMemcachedClient client, 
-            MemcachedRegionPropertiesHolder properties, Settings settings, CacheDataDescription metadata) {
-        super(client, properties, settings, metadata);
+    /**
+     * Creates a new {@link MemcachedCollectionRegion}.
+     * 
+     * @param client               the client used to access Memcached
+     * @param settings             the settings for this region
+     * @param cacheDataDescription the metadata for this region
+     */
+    public MemcachedCollectionRegion(HibernateMemcachedClient client, MemcachedRegionSettings settings, CacheDataDescription cacheDataDescription) {
+        super(client, settings, cacheDataDescription);
     }
 
-    public CollectionRegionAccessStrategy getReadOnlyRegionAccessStrategy(Settings settings) {
-        return new ReadOnlyMemcachedCollectionRegionAccessStrategy(this, settings);
+    @Override
+    public CollectionRegionAccessStrategy getReadOnlyRegionAccessStrategy() {
+        return new ReadOnlyMemcachedCollectionRegionAccessStrategy(this);
     }
 
-    public CollectionRegionAccessStrategy getReadWriteRegionAccessStrategy(Settings settings) {
-        return new ReadWriteMemcachedCollectionRegionAccessStrategy(this, settings);
+    @Override
+    public CollectionRegionAccessStrategy getReadWriteRegionAccessStrategy() {
+        return new ReadWriteMemcachedCollectionRegionAccessStrategy(this);
     }
 
-    public CollectionRegionAccessStrategy getNonStrictReadWriteRegionAccessStrategy(Settings settings) {
-        return new NonStrictReadWriteMemcachedCollectionRegionAccessStrategy(this, settings);
+    @Override
+    public CollectionRegionAccessStrategy getNonStrictReadWriteRegionAccessStrategy() {
+        return new NonStrictReadWriteMemcachedCollectionRegionAccessStrategy(this);
     }
 
-    public CollectionRegionAccessStrategy getTransactionalRegionAccessStrategy(Settings settings) {
-        return new TransactionalMemcachedCollectionRegionAccessStrategy(this, settings);
+    @Override
+    public CollectionRegionAccessStrategy getTransactionalRegionAccessStrategy() {
+        return new TransactionalMemcachedCollectionRegionAccessStrategy(this);
     }
 
 }

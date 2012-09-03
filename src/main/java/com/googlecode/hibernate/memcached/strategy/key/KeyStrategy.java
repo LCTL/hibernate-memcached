@@ -1,11 +1,18 @@
 package com.googlecode.hibernate.memcached.strategy.key;
 
 /**
- * Strategy interface for parsing the parts used by {@link MemcachedCache} to generate cache keys.
- *
+ * Interface for taking an <code>Object</code> and turning it into a key.
+ * 
  * @author Ray Krueger
  */
 public interface KeyStrategy {
 
-    String toKey(String regionName, long clearIndex, Object key);
+    /**
+     * Turns an <code>Object</code> into a key <code>String</code>.
+     * 
+     * @param o the <code>Object</code> to turn into a key
+     * @return  a key <code>String</code>
+     */
+    String toKey(Object o);
+    
 }

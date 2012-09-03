@@ -15,22 +15,29 @@
 package com.googlecode.hibernate.memcached.strategy;
 
 import org.hibernate.cache.CacheException;
+import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.access.EntityRegionAccessStrategy;
 import org.hibernate.cache.spi.access.SoftLock;
 import org.hibernate.cfg.Settings;
 
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
+import com.googlecode.hibernate.memcached.region.MemcachedRegion;
+import com.googlecode.hibernate.memcached.region.MemcachedRegionComponentFactory;
 
 /**
- *
+ * Implements {@link EntityRegionAccessStrategy}.
+ * 
  * @author kcarlson
+ * 
+ * @see AccessType#NONSTRICT_READ_WRITE
  */
 public class NonStrictReadWriteMemcachedEntityRegionAccessStrategy 
     extends AbstractNoLockMemcachedRegionAccessStrategy<MemcachedEntityRegion> 
     implements EntityRegionAccessStrategy {
 
-    public NonStrictReadWriteMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion aThis, Settings settings) {
-        super(aThis, settings);
+    public NonStrictReadWriteMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion region) {
+        super(region);
     }
 
     /**
@@ -39,7 +46,11 @@ public class NonStrictReadWriteMemcachedEntityRegionAccessStrategy
      */
     @Override
     public boolean afterInsert(Object key, Object value, Object version) throws CacheException {
-        return getRegion().set(String.valueOf(key), value);
+        MemcachedRegion region = getRegion();
+        MemcachedRegionComponentFactory componentFactory = region.createComponentFactory();
+        HibernateMemcachedClient client = componentFactory.createMemcacheClient();
+        
+        return client.set(toKey(key), region.getTimeout(), value);
     }
 
     /**
@@ -48,7 +59,11 @@ public class NonStrictReadWriteMemcachedEntityRegionAccessStrategy
      */
     @Override
     public boolean afterUpdate(Object key, Object value, Object currentVersion, Object previousVersion, SoftLock lock) throws CacheException {
-        return getRegion().set(String.valueOf(key), value);
+        MemcachedRegion region = getRegion();
+        MemcachedRegionComponentFactory componentFactory = region.createComponentFactory();
+        HibernateMemcachedClient client = componentFactory.createMemcacheClient();
+        
+        return client.set(toKey(key), region.getTimeout(), value);
     }
 
     /**
@@ -70,6 +85,7 @@ public class NonStrictReadWriteMemcachedEntityRegionAccessStrategy
      */
     @Override
     public boolean update(Object key, Object value, Object currentVersion, Object previousVersion) throws CacheException {
+        // remove on update?
         return false;
     }
 }

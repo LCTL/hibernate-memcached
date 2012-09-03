@@ -1,8 +1,10 @@
 package com.googlecode.hibernate.memcached
 
+import com.googlecode.hibernate.memcached.MemcachedRegionProperties;
 import com.googlecode.hibernate.memcached.client.spymemcached.*;
 import com.googlecode.hibernate.memcached.client.dangamemcached.DangaMemcacheClientFactory;
 import com.googlecode.hibernate.memcached.strategy.key.*
+import com.googlecode.hibernate.memcached.strategy.key.encoding.*
 /**
  * DOCUMENT ME!
  * @author Ray Krueger
@@ -34,15 +36,15 @@ class MemcachedRegionPropertiesTest extends BaseTestCase {
         assertFalse regionProperties.isClearSupported("REGION")
     }
 
-    void test_key_strategy() {
+    void test_key_encoding_strategy() {
 
         Properties p = new Properties()
-        p["hibernate.memcached.keyStrategy"] = Md5KeyStrategy.class.getName()
-        p["hibernate.memcached.REGION.keyStrategy"] = StringKeyStrategy.class.getName()
+        p["hibernate.memcached.keyEncodingStrategy"] = Md5KeyEncodingStrategy.class.getName()
+        p["hibernate.memcached.REGION.keyEncodingStrategy"] = NonEncodingKeyEncodingStrategy.class.getName()
 
         MemcachedRegionProperties regionProperties = newRegionProperties(p)
-        assertEquals Md5KeyStrategy.class.getName(), regionProperties.getKeyStrategy(null).class.getName()
-        assertEquals StringKeyStrategy.class.getName(), regionProperties.getKeyStrategy("REGION").class.getName()
+        assertEquals Md5KeyEncodingStrategy.class.getName(), regionProperties.getKeyEncodingStrategy(null).class.getName()
+        assertEquals NonEncodingKeyEncodingStrategy.class.getName(), regionProperties.getKeyEncodingStrategy("REGION").class.getName()
     }
 
     void test_dogpile_prevention() {

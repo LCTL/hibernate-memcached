@@ -1,21 +1,33 @@
 package com.googlecode.hibernate.memcached.strategy;
 
 import org.hibernate.cache.CacheException;
+import org.hibernate.cache.spi.access.RegionAccessStrategy;
 import org.hibernate.cache.spi.access.SoftLock;
-import org.hibernate.cfg.Settings;
 
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.region.MemcachedRegion;
+import com.googlecode.hibernate.memcached.region.MemcachedRegionComponentFactory;
 
+/**
+ * An abstract {@link RegionAccessStrategy} that does not support key locking.
+ * 
+ * @param <T> the underling {@link MemcachedRegion} implementation type
+ */
 public class AbstractNoLockMemcachedRegionAccessStrategy<T extends MemcachedRegion> 
     extends AbstractMemcachedRegionAccessStrategy<T> {
 
-    public AbstractNoLockMemcachedRegionAccessStrategy(T region, Settings settings) {
-        super(region, settings);
+    /**
+     * Creates a new access strategy for the given region.
+     * 
+     * @param region the region this strategy grants access to
+     */
+    public AbstractNoLockMemcachedRegionAccessStrategy(T region) {
+        super(region);
     }
 
     @Override
     public Object get(Object key, long txTimestamp) throws CacheException {
-        return getRegion().get(String.valueOf(key));
+        return getRegion().createComponentFactory().createMemcacheClient().get(toKey(key));
     }
 
     @Override
@@ -25,12 +37,20 @@ public class AbstractNoLockMemcachedRegionAccessStrategy<T extends MemcachedRegi
 
     @Override
     public boolean putFromLoad(Object key, Object value, long txTimestamp, Object version, boolean minimalPutOverride) throws CacheException {
-        if (minimalPutOverride && getRegion().get(String.valueOf(key)) != null) {
+        MemcachedRegion region = getRegion();
+        MemcachedRegionComponentFactory componentFactory = region.createComponentFactory();
+        HibernateMemcachedClient client = componentFactory.createMemcacheClient();
+        
+        if (minimalPutOverride && client.get(toKey(key)) != null) {
             return false;
         } else {
-            getRegion().set(String.valueOf(key), value);
-            return true;
+            return client.set(toKey(key), region.getTimeout(), value);
         }
+    }
+    
+    @Override
+    public void remove(Object key) throws CacheException {
+        evict(key);
     }
 
     @Override

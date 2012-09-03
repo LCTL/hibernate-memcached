@@ -1,43 +1,52 @@
 package com.googlecode.hibernate.memcached.region;
 
-import java.util.Properties;
-
 import org.hibernate.cache.spi.CacheDataDescription;
 import org.hibernate.cache.spi.NaturalIdRegion;
 import org.hibernate.cache.spi.access.NaturalIdRegionAccessStrategy;
-import org.hibernate.cfg.Settings;
 
-import com.googlecode.hibernate.memcached.MemcachedCache;
-import com.googlecode.hibernate.memcached.MemcachedRegionPropertiesHolder;
+import com.googlecode.hibernate.memcached.MemcachedRegionSettings;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.strategy.NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.ReadOnlyMemcachedNaturalIdRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.ReadWriteMemcachedNaturalIdRegionAccessStrategy;
 import com.googlecode.hibernate.memcached.strategy.TransactionalMemcachedNaturalIdRegionAccessStrategy;
 
+/**
+ * Implements the {@link NaturalIdRegion} interface.
+ */
 public class MemcachedNaturalIdRegion 
     extends AbstractMemcachedTransactionalDataRegion<NaturalIdRegionAccessStrategy>
     implements NaturalIdRegion {
 
-    public MemcachedNaturalIdRegion(HibernateMemcachedClient client, 
-            MemcachedRegionPropertiesHolder properties, Settings settings, CacheDataDescription metadata) {
-        super(client, properties, settings, metadata);
+    /**
+     * Creates a new {@link MemcachedNaturalIdRegion}.
+     * 
+     * @param client               the client used to access Memcached
+     * @param settings             the settings for this region
+     * @param cacheDataDescription the metadata for this region
+     */
+    public MemcachedNaturalIdRegion(HibernateMemcachedClient client, MemcachedRegionSettings settings, CacheDataDescription cacheDataDescription) {
+        super(client, settings, cacheDataDescription);
     }
 
-    public NaturalIdRegionAccessStrategy getReadOnlyRegionAccessStrategy(Settings settings) {
-        return new ReadOnlyMemcachedNaturalIdRegionAccessStrategy(this, settings);
+    @Override
+    public NaturalIdRegionAccessStrategy getReadOnlyRegionAccessStrategy() {
+        return new ReadOnlyMemcachedNaturalIdRegionAccessStrategy(this);
     }
 
-    public NaturalIdRegionAccessStrategy getReadWriteRegionAccessStrategy(Settings settings) {
-        return new ReadWriteMemcachedNaturalIdRegionAccessStrategy(this, settings, getCacheDataDescription());
+    @Override
+    public NaturalIdRegionAccessStrategy getReadWriteRegionAccessStrategy() {
+        return new ReadWriteMemcachedNaturalIdRegionAccessStrategy(this);
     }
 
-    public NaturalIdRegionAccessStrategy getNonStrictReadWriteRegionAccessStrategy(Settings settings) {
-        return new NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy(this, settings);
+    @Override
+    public NaturalIdRegionAccessStrategy getNonStrictReadWriteRegionAccessStrategy() {
+        return new NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy(this);
     }
 
-    public NaturalIdRegionAccessStrategy getTransactionalRegionAccessStrategy(Settings settings) {
-        return new TransactionalMemcachedNaturalIdRegionAccessStrategy(this, settings, getCacheDataDescription());
+    @Override
+    public NaturalIdRegionAccessStrategy getTransactionalRegionAccessStrategy() {
+        return new TransactionalMemcachedNaturalIdRegionAccessStrategy(this);
     }
 
 }

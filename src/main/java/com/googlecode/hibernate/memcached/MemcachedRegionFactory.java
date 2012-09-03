@@ -15,8 +15,6 @@
 package com.googlecode.hibernate.memcached;
 
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.hibernate.cache.CacheException;
 import org.hibernate.cache.spi.CacheDataDescription;
@@ -33,7 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClientFactory;
-import com.googlecode.hibernate.memcached.concurrent.keylock.MemcachedRegionReadWriteKeyLockProvider;
+import com.googlecode.hibernate.memcached.client.dangamemcached.DangaMemcacheClientFactory;
+import com.googlecode.hibernate.memcached.client.spymemcached.SpyMemcachedProperties;
 import com.googlecode.hibernate.memcached.region.MemcachedCollectionRegion;
 import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
 import com.googlecode.hibernate.memcached.region.MemcachedNaturalIdRegion;
@@ -43,7 +42,17 @@ import com.googlecode.hibernate.memcached.strategy.clear.MemcachedRegionClearStr
 
 
 /**
- *
+ * An implementation of {@link RegionFactory} to add support for Memcached as
+ * as second-level cache.
+ * <p>
+ * To use set the hibernate property <i>hibernate.cache.provider_class</i> to
+ * <i>com.googlecode.hibernate.memcached.MemcachedRegionFactory</i>.
+ * <p>
+ * This {@link RegionFactory} supports three types of properties, cache-wide
+ * properties (See {@link MemcachedProperties}), region-wide properties (See 
+ * {@link MemcachedRegionProperties}), and client-wide properties (See 
+ * {@link SpyMemcachedProperties} and {@link DangaMemcacheClientFactory}).
+ * 
  * @author kcarlson
  */
 public class MemcachedRegionFactory implements RegionFactory {
@@ -53,30 +62,32 @@ public class MemcachedRegionFactory implements RegionFactory {
     private static final Logger log = LoggerFactory.getLogger(MemcachedRegionFactory.class);
 
     private HibernateMemcachedClient client;
-    private MemcachedProperties properties;
-    private Settings settings;
+    private Settings hibernateSettings;
     
-    public MemcachedRegionFactory() {
-    }
+    /**
+     * Creates a new {@link MemcachedRegionFactory}.
+     */
+    public MemcachedRegionFactory() { }
     
+    /**
+     * Creates a new {@link MemcachedRegionFactory}.
+     * 
+     * @param properties properties used to initialize the factory
+     */
     public MemcachedRegionFactory(Properties properties) {
         super();
-        this.properties = new MemcachedProperties(properties);
     }
     
     @Override
     public void start(Settings settings, Properties properties) throws CacheException {
-        log.info("Starting MemcachedClient...");
-        
-        this.settings = settings;
-        this.properties = new MemcachedRegionProperties(properties);
+        this.hibernateSettings = settings;
         
         try {
-
-            client = buildClient(this.properties);
-        
+            log.info("Starting HibernateMemcachedClient...");
+            client = buildHibernateMemcachedClient(properties);
+            log.info("HibernateMemcachedClient started!");
         } catch (Exception e) {
-            throw new CacheException("Unable to initialize MemcachedClient", e);
+            throw new CacheException("Unable to initialize HibernateMemcachedClient", e);
         }
     }
 
@@ -91,7 +102,7 @@ public class MemcachedRegionFactory implements RegionFactory {
 
     @Override
     public boolean isMinimalPutsEnabledByDefault() {
-        // use settings? settings.isMinimalPutsEnabled();
+        // use hibernateSettings? settings.isMinimalPutsEnabled();
         return true;
     }
 
@@ -107,39 +118,54 @@ public class MemcachedRegionFactory implements RegionFactory {
 
     @Override
     public EntityRegion buildEntityRegion(String regionName, Properties properties, CacheDataDescription metadata) throws CacheException {
-        return new MemcachedEntityRegion(client, getRegionProperties(regionName, properties), settings, metadata);
+        return new MemcachedEntityRegion(client, buildMemcachedRegionSettings(regionName, properties), metadata);
     }
 
     @Override
     public CollectionRegion buildCollectionRegion(String regionName, Properties properties, CacheDataDescription metadata) throws CacheException {
-        return new MemcachedCollectionRegion(client, getRegionProperties(regionName, properties), settings, metadata);
+        return new MemcachedCollectionRegion(client, buildMemcachedRegionSettings(regionName, properties),  metadata);
     }
     
     @Override
     public NaturalIdRegion buildNaturalIdRegion(String regionName, Properties properties, CacheDataDescription metadata) throws CacheException {
-        return new MemcachedNaturalIdRegion(client, getRegionProperties(regionName, properties), settings, metadata);
+        return new MemcachedNaturalIdRegion(client, buildMemcachedRegionSettings(regionName, properties), metadata);
     }
 
     @Override
     public QueryResultsRegion buildQueryResultsRegion(String regionName, Properties properties) throws CacheException {
-        return new MemcachedQueryResultsRegion(client, getRegionProperties(regionName, properties), settings);
+        return new MemcachedQueryResultsRegion(client, buildMemcachedRegionSettings(regionName, properties));
     }
 
     @Override
     public TimestampsRegion buildTimestampsRegion(String regionName, Properties properties) throws CacheException {
-        return new MemcachedTimestampsRegion(client, getRegionProperties(regionName, properties), settings);
+        return new MemcachedTimestampsRegion(client, buildMemcachedRegionSettings(regionName, properties));
     }
     
-    private MemcachedRegionPropertiesHolder getRegionProperties(String region, Properties properties) {
-        MemcachedRegionProperties props = new MemcachedRegionProperties(properties);
-        MemcachedRegionPropertiesHolder holder = new MemcachedRegionPropertiesHolder(region, props);
-        holder.setClearStrategy(new MemcachedRegionClearStrategy(client, holder));
-        holder.setReadWriteKeyLockProvider(new MemcachedRegionReadWriteKeyLockProvider(client, holder));
-        return holder;
+    /**
+     * Builds the {@link MemcachedRegionSettings} for a region using the given
+     * {@link Properties}.
+     * 
+     * @param regionName the name of the region to get the settings for
+     * @param properties the properties used to build the settings
+     * @return           the settings for the given region
+     */
+    private MemcachedRegionSettings buildMemcachedRegionSettings(String regionName, Properties properties) {
+        MemcachedRegionProperties regionProperties = new MemcachedRegionProperties(properties);
+        MemcachedRegionSettings regionSettings = new MemcachedRegionSettings(regionName, regionProperties);
+        regionSettings.setClearStrategy(new MemcachedRegionClearStrategy(client, regionSettings));
+        regionSettings.setHibernateSettings(hibernateSettings);
+        return regionSettings;
     }
     
-    private HibernateMemcachedClient buildClient(MemcachedProperties properties) throws Exception {
-        HibernateMemcachedClientFactory clientFactory = properties.getMemcachedClientFactory();
+    /**
+     * Builds the {@link HibernateMemcachedClient} used to access Memcached.
+     * 
+     * @param properties the properties used to build the client
+     * @return           a {@link HibernateMemcachedClient}
+     */
+    private HibernateMemcachedClient buildHibernateMemcachedClient(Properties properties) {
+        MemcachedProperties memcachedProperties = new MemcachedProperties(properties);
+        HibernateMemcachedClientFactory clientFactory = memcachedProperties.getMemcachedClientFactory();
         return clientFactory.createMemcacheClient();
     }
 }

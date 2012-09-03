@@ -14,20 +14,23 @@
  */
 package com.googlecode.hibernate.memcached.strategy;
 
+import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.access.CollectionRegionAccessStrategy;
-import org.hibernate.cfg.Settings;
 
 import com.googlecode.hibernate.memcached.region.MemcachedCollectionRegion;
 
 /**
- *
+ * Implements {@link CollectionRegionAccessStrategy}.
+ * 
  * @author kcarlson
+ * 
+ * @see AccessType#NONSTRICT_READ_WRITE
  */
 public class NonStrictReadWriteMemcachedCollectionRegionAccessStrategy
     extends AbstractNoLockMemcachedRegionAccessStrategy<MemcachedCollectionRegion> 
     implements CollectionRegionAccessStrategy {
 
-    public NonStrictReadWriteMemcachedCollectionRegionAccessStrategy(MemcachedCollectionRegion region, Settings settings) {
-        super(region, settings);
+    public NonStrictReadWriteMemcachedCollectionRegionAccessStrategy(MemcachedCollectionRegion region) {
+        super(region);
     }
 }

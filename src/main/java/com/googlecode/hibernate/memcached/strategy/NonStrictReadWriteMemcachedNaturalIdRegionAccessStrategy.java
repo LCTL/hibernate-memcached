@@ -1,18 +1,27 @@
 package com.googlecode.hibernate.memcached.strategy;
 
 import org.hibernate.cache.CacheException;
+import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.access.NaturalIdRegionAccessStrategy;
 import org.hibernate.cache.spi.access.SoftLock;
 import org.hibernate.cfg.Settings;
 
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.region.MemcachedNaturalIdRegion;
+import com.googlecode.hibernate.memcached.region.MemcachedRegion;
+import com.googlecode.hibernate.memcached.region.MemcachedRegionComponentFactory;
 
+/**
+ * Implements {@link NaturalIdRegionAccessStrategy}.
+ * 
+ * @see AccessType#NONSTRICT_READ_WRITE
+ */
 public class NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy 
     extends AbstractNoLockMemcachedRegionAccessStrategy<MemcachedNaturalIdRegion>
     implements NaturalIdRegionAccessStrategy {
 
-    public NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy(MemcachedNaturalIdRegion region, Settings settings) {
-        super(region, settings);
+    public NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy(MemcachedNaturalIdRegion region) {
+        super(region);
     }
 
     /**
@@ -21,7 +30,11 @@ public class NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy
      */
     @Override
     public boolean afterInsert(Object key, Object value) throws CacheException {
-        return getRegion().set(String.valueOf(key), value);
+        MemcachedRegion region = getRegion();
+        MemcachedRegionComponentFactory componentFactory = region.createComponentFactory();
+        HibernateMemcachedClient client = componentFactory.createMemcacheClient();
+        
+        return client.set(toKey(key), region.getTimeout(), value);
     }
 
     /**
@@ -30,7 +43,11 @@ public class NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy
      */
     @Override
     public boolean afterUpdate(Object key, Object value, SoftLock lock) throws CacheException {
-        return getRegion().set(String.valueOf(key), value);
+        MemcachedRegion region = getRegion();
+        MemcachedRegionComponentFactory componentFactory = region.createComponentFactory();
+        HibernateMemcachedClient client = componentFactory.createMemcacheClient();
+        
+        return client.set(toKey(key), region.getTimeout(), value);
     }
 
     /**
@@ -52,6 +69,7 @@ public class NonStrictReadWriteMemcachedNaturalIdRegionAccessStrategy
      */
     @Override
     public boolean update(Object key, Object value) throws CacheException {
+        // remove on update?
         return false;
     }
 }

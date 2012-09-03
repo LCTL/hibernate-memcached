@@ -15,67 +15,102 @@
 package com.googlecode.hibernate.memcached.strategy;
 
 import org.hibernate.cache.CacheException;
+import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.access.EntityRegionAccessStrategy;
 import org.hibernate.cache.spi.access.SoftLock;
-import org.hibernate.cfg.Settings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
 import com.googlecode.hibernate.memcached.region.MemcachedRegion;
 
 /**
  *
  * @author kcarlson
+ * 
+ * @see AccessType#READ_WRITE
  */
 public class ReadWriteMemcachedEntityRegionAccessStrategy 
     extends AbstractReadWriteMemcachedAccessStrategy<MemcachedEntityRegion>
     implements EntityRegionAccessStrategy {
 
-    public ReadWriteMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion region, Settings settings) {
-        super(region, settings, region.getCacheDataDescription());
+    private static final Logger log = LoggerFactory.getLogger(ReadWriteMemcachedEntityRegionAccessStrategy.class);
+
+    public ReadWriteMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion region) {
+        super(region, region.getCacheDataDescription());
     }
 
     @Override
     public boolean afterInsert(Object key, Object value, Object version) throws CacheException {
-        String objectKey = String.valueOf(key);
-        MemcachedRegion region = getRegion();
-        region.acquireWriteLock(objectKey);
-        
-        try {
-            Lockable item = (Lockable) region.get(objectKey);
-            if (item == null) {
-                return region.set(objectKey, new Item(value, version, region.nextTimestamp()));
-            } else {
-                return false;
+        LockedExecution<Boolean> execution = new LockedExecution<Boolean>(value, version) {
+            private boolean success = false;
+
+            @Override
+            public void exec(String objectKey, HibernateMemcachedClient client, MemcachedRegion region) {
+                Object value = args[0];
+                Object version = args[1];
+
+                Lockable item = (Lockable) client.get(objectKey);
+                if (item == null) {
+                    success = client.set(objectKey, region.getTimeout(), new Item(value, version, region.nextTimestamp()));
+                }
             }
-        } finally {
-            region.releaseWriteLock(objectKey);
+
+            @Override
+            public Boolean result() {
+                return success;
+            }
+        };
+
+        String objectKey = toKey(key);
+        wrapWithWriteLock(objectKey, execution);
+    
+        if (!execution.result()) {
+            log.warn("Could not afterInsert item for key {}", objectKey);
         }
+    
+        return execution.result();
     }
 
+    @Override
     public boolean afterUpdate(Object key, Object value, Object currentVersion, Object previousVersion, SoftLock lock) throws CacheException {
-        String objectKey = String.valueOf(key);
-        MemcachedRegion region = getRegion();
-        region.acquireWriteLock(objectKey);
-        
-        try {
-            Lockable item = (Lockable) region.get(objectKey);
-            boolean unlockable = item != null && item.isUnlockable(lock);
-            if (unlockable) {
-                Lock lockItem = (Lock) item;
-                if (lockItem.wasLockedConcurrently()) {
-                    decrementLock(objectKey, lockItem);
-                    return false;
+        LockedExecution<Boolean> execution = new LockedExecution<Boolean>(value, currentVersion, previousVersion, lock) {
+            private boolean success = false;
+
+            @Override
+            public void exec(String objectKey, HibernateMemcachedClient client, MemcachedRegion region) {
+                Object value = args[0];            Object currentVersion = args[1];
+                Object previousVersion = args[2];  SoftLock lock = (SoftLock) args[3];
+
+                Lockable item = (Lockable) client.get(objectKey);
+                boolean unlockable = item != null && item.isUnlockable(lock);
+                if (unlockable) {
+                    Lock lockItem = (Lock) item;
+                    if (lockItem.wasLockedConcurrently()) {
+                        success = decrementLock(client, objectKey, lockItem);
+                    } else {
+                        success = client.set(objectKey, region.getTimeout(), new Item(value, currentVersion, region.nextTimestamp()));
+                    }
                 } else {
-                    region.set(objectKey, new Item(value, currentVersion, getRegion().nextTimestamp()));
-                    return true;
+                    success = handleLockExpiry(client, objectKey, null);
                 }
-            } else {
-                super.handleLockExpiry(objectKey, null);
-                return false;
             }
-        } finally {
-            region.releaseWriteLock(objectKey);
+
+            @Override
+            public Boolean result() {
+                return success;
+            }
+        };
+
+        String objectKey = toKey(key);
+        wrapWithWriteLock(objectKey, execution);
+    
+        if (!execution.result()) {
+            log.warn("Could not afterUpdate item for key {}", objectKey);
         }
+    
+        return execution.result();
     }
 
     /**
@@ -88,6 +123,7 @@ public class ReadWriteMemcachedEntityRegionAccessStrategy
         return false;
     }
 
+    @Override
     public boolean update(Object key, Object value, Object currentVersion, Object previousVersion) throws CacheException {
         return false;
     }

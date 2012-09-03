@@ -22,8 +22,11 @@ import org.hibernate.cfg.Settings;
 import com.googlecode.hibernate.memcached.region.MemcachedRegion;
 
 /**
- *
+ * An abstract implementation of the {@link RegionAccessStrategy} interface.
+ * 
  * @author kcarlson
+ *
+ * @param <T> the underling {@link MemcachedRegion} implementation type
  */
 public abstract class AbstractMemcachedRegionAccessStrategy<T extends MemcachedRegion>
     implements RegionAccessStrategy {
@@ -31,51 +34,65 @@ public abstract class AbstractMemcachedRegionAccessStrategy<T extends MemcachedR
     private T region;
     private Settings settings;
     
-    public AbstractMemcachedRegionAccessStrategy(T region, Settings settings) {
+    /**
+     * Creates a new access strategy for the given region.
+     * 
+     * @param region the region this strategy grants access to
+     */
+    public AbstractMemcachedRegionAccessStrategy(T region) {
         this.region = region;
-        this.settings = settings;
+        this.settings = region.getSettings().getHibernateSettings();
     }
 
     @Override
     public void evict(Object key) throws CacheException {
-        region.delete(String.valueOf(key));
+        region.createComponentFactory().createMemcacheClient().delete(toKey(key));
     }
 
     @Override
     public void evictAll() throws CacheException {
-        region.clear(); // does this really mean the whole cache or just the region?
+        removeAll(); // does this really mean the whole cache or just the region?
     }
 
+    /**
+     * Implements method declared by many interfaces that inherit from this
+     * class.
+     * 
+     * @return the underlying region
+     */
     public T getRegion() {
         return region;
     }
 
     @Override
     public SoftLock lockRegion() throws CacheException {
-        throw new UnsupportedOperationException("Memcached does not support region locking");
-    }
-
-    @Override
-    public boolean putFromLoad(Object key, Object value, long txTimestamp, Object version) throws CacheException {
-        return putFromLoad(key, value, txTimestamp, version, settings.isMinimalPutsEnabled());
-    }
-
-    @Override
-    public void remove(Object key) throws CacheException {
-        evict(key);
-    }
-
-    @Override
-    public void removeAll() throws CacheException {
-        if (!region.clear()) {
-            //UnsupportedOperationException?
-            throw new CacheException("Memcached does not support region level data eviction");
-        }
-    }
-
-    @Override
-    public void unlockRegion(SoftLock lock) throws CacheException {
-        throw new UnsupportedOperationException("Memcached does not support region locking");
+        throw new UnsupportedOperationException("Region level locking is not supported.");
     }
     
+    @Override
+    public boolean putFromLoad(Object key, Object value, long txTimestamp, Object version) throws CacheException {
+        Settings settings = getRegion().getSettings().getHibernateSettings();
+        return putFromLoad(key, value, txTimestamp, version, settings.isMinimalPutsEnabled());
+    }
+    
+    @Override
+    public void removeAll() throws CacheException {
+        if (!getRegion().clear()) {
+            throw new UnsupportedOperationException("Region level data eviction is not supported.");
+        }
+    }
+    
+    @Override
+    public void unlockRegion(SoftLock lock) throws CacheException {
+        throw new UnsupportedOperationException("Region level locking is not supported.");
+    }
+    
+    /**
+     * Convenience method for turning an object into a key.
+     * 
+     * @see MemcachedRegion#toKey(Object)
+     */
+    protected String toKey(Object o) {
+        return region.toKey(o);
+    }
 }

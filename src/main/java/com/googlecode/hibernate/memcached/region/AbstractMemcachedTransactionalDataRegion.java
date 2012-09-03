@@ -6,16 +6,20 @@ import org.hibernate.cache.spi.TransactionalDataRegion;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.access.RegionAccessStrategy;
 import org.hibernate.cache.spi.access.UnknownAccessTypeException;
-import org.hibernate.cfg.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.googlecode.hibernate.memcached.MemcachedCache;
-import com.googlecode.hibernate.memcached.MemcachedRegionPropertiesHolder;
+import com.googlecode.hibernate.memcached.MemcachedRegionSettings;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
 import com.googlecode.hibernate.memcached.strategy.TransactionalDataRegionAccessStrategyFactory;
 
-public abstract class AbstractMemcachedTransactionalDataRegion<S extends RegionAccessStrategy>
+/**
+ * An abstract implementation of {@link TransactionalDataRegion} and 
+ * {@link TransactionalDataRegionAccessStrategyFactory}.
+ * 
+ * @param <S> extends {@link RegionAccessStrategy}
+ */
+public abstract class AbstractMemcachedTransactionalDataRegion <S extends RegionAccessStrategy>
     extends AbstractMemcachedRegion
     implements TransactionalDataRegion, TransactionalDataRegionAccessStrategyFactory<S> {
 
@@ -23,34 +27,73 @@ public abstract class AbstractMemcachedTransactionalDataRegion<S extends RegionA
     
     private final CacheDataDescription metadata;
 
-    public AbstractMemcachedTransactionalDataRegion(HibernateMemcachedClient client, MemcachedRegionPropertiesHolder properties, Settings settings, CacheDataDescription metadata) {
-        super(client, properties, settings);
-        this.metadata = metadata;
+    /**
+     * Creates a new {@link AbstractMemcachedTransactionalDataRegion} with the
+     * given client, settings and metadata.
+     * 
+     * @param client               the client used to access Memcached
+     * @param settings             the settings for this region
+     * @param cacheDataDescription the metadata for this region
+     */
+    public AbstractMemcachedTransactionalDataRegion(HibernateMemcachedClient client, MemcachedRegionSettings settings, CacheDataDescription cacheDataDescription) {
+        super(client, settings);
+        this.metadata = cacheDataDescription;
     }
     
+    /**
+     * Creates a new {@link RegionAccessStrategy} based on the given 
+     * {@link AccessType}. This is the implementation of a method which is 
+     * declared in many interfaces that extend {@link TransactionalDataRegion}.
+     * 
+     * @param accessType      the type of access allowed by the generated
+     *                        {@link RegionAccessStrategy}
+     * @return                a new {@link RegionAccessStrategy} with the
+     *                        requested {@link AccessType}
+     * @throws CacheException if something went wrong in the cache
+     */
     public S buildAccessStrategy(AccessType accessType) throws CacheException {
         
         switch(accessType) {
         case READ_ONLY:
-            if (getCacheDataDescription().isMutable()) {
-                log.warn("read-only cache configured for mutable entity [" + getName() + "]");
+            if (metadata.isMutable()) {
+                log.warn("{} cache configured for mutable entity [{}]", AccessType.READ_ONLY, getName());
             }
-            return getReadOnlyRegionAccessStrategy(getSettings());
+            return getReadOnlyRegionAccessStrategy();
+            
         case READ_WRITE:
-            return getReadWriteRegionAccessStrategy(getSettings());
+            if (!metadata.isMutable()) {
+                log.warn("{} cache configured for imutable entity [{}]", AccessType.READ_WRITE, getName());
+            }
+            return getReadWriteRegionAccessStrategy();
+            
         case NONSTRICT_READ_WRITE:
-            return getNonStrictReadWriteRegionAccessStrategy(getSettings());
+            if (!metadata.isMutable()) {
+                log.warn("{} cache configured for imutable entity [{}]", AccessType.NONSTRICT_READ_WRITE, getName());
+            }
+            return getNonStrictReadWriteRegionAccessStrategy();
+            
         case TRANSACTIONAL:
-            return getTransactionalRegionAccessStrategy(getSettings());
+            if (!metadata.isMutable()) {
+                log.warn("{} cache configured for imutable entity [{}]", AccessType.TRANSACTIONAL, getName());
+            }
+            return getTransactionalRegionAccessStrategy();
+            
         default:
             throw new UnknownAccessTypeException("unrecognized access strategy type [" + accessType + "]");
         }
     }
 
+    @Override
     public boolean isTransactionAware() {
         return false;
     }
 
+    /**
+     * Gets the CacheDataDescription for this region.
+     * 
+     * @return the CacheDataDescription for this region, or null
+     */
+    @Override
     public CacheDataDescription getCacheDataDescription() {
         return metadata;
     }

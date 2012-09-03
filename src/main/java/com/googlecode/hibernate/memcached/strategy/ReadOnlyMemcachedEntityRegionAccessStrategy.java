@@ -15,6 +15,7 @@
 package com.googlecode.hibernate.memcached.strategy;
 
 import org.hibernate.cache.CacheException;
+import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.access.EntityRegionAccessStrategy;
 import org.hibernate.cache.spi.access.SoftLock;
 import org.hibernate.cfg.Settings;
@@ -24,13 +25,15 @@ import com.googlecode.hibernate.memcached.region.MemcachedEntityRegion;
 /**
  *
  * @author kcarlson
+ * 
+ * @see AccessType#READ_ONLY
  */
 public class ReadOnlyMemcachedEntityRegionAccessStrategy
     extends AbstractNoLockMemcachedRegionAccessStrategy<MemcachedEntityRegion> 
     implements EntityRegionAccessStrategy {
 
-    public ReadOnlyMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion region, Settings settings) {
-        super(region, settings);
+    public ReadOnlyMemcachedEntityRegionAccessStrategy(MemcachedEntityRegion region) {
+        super(region);
     }
  
     /**

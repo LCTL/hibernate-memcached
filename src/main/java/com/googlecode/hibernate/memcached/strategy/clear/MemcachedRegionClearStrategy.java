@@ -2,62 +2,86 @@ package com.googlecode.hibernate.memcached.strategy.clear;
 
 import org.hibernate.cache.CacheException;
 
-import com.googlecode.hibernate.memcached.MemcachedRegionPropertiesHolder;
+import com.googlecode.hibernate.memcached.MemcachedRegionSettings;
 import com.googlecode.hibernate.memcached.client.HibernateMemcachedClient;
+import com.googlecode.hibernate.memcached.strategy.key.encoding.KeyEncodingStrategy;
+import com.googlecode.hibernate.memcached.utils.MemcachedRegionSettingsUtils;
 
+/**
+ * A class that adds region level clearing to Memcached. Clients should use the
+ * current value of {@link MemcachedRegionClearStrategy#getClearIndex()} as a
+ * part of their key generation strategy.
+ * <p>
+ * This implementation uses Memcached to store clear indices.
+ * 
+ * @see ClearStrategy
+ */
 public class MemcachedRegionClearStrategy implements ClearStrategy {
 
     private HibernateMemcachedClient client;
-    private MemcachedRegionPropertiesHolder regionProperties;
-    private final String clearIndexKey;
+    private MemcachedRegionSettings settings;
     
-    public MemcachedRegionClearStrategy(HibernateMemcachedClient client, 
-            MemcachedRegionPropertiesHolder regionProperties) {
+    private final String encodedClearIndexKey;
+    
+    /**
+     * Creates a new {@link MemcachedRegionClearStrategy}.
+     * 
+     * @param client   the client used to store clear indices
+     * @param settings the settings for this {@link ClearStrategy}s region
+     */
+    public MemcachedRegionClearStrategy(HibernateMemcachedClient client, MemcachedRegionSettings settings) {
         this.client = client;
-        this.regionProperties = regionProperties;
+        this.settings = settings;
         
-        this.clearIndexKey = new StringBuilder()
-        .append(regionProperties.getClearIndexKeyPrefix())
-        .append(regionProperties.getNamespaceSeparator())
-        .append(regionProperties.getName())
-        .toString();
+        KeyEncodingStrategy keyEncodingStrategy =
+                MemcachedRegionSettingsUtils.getValidatedMemcachedKeyEncodingStrategy(settings);
+        this.encodedClearIndexKey = keyEncodingStrategy.encode(
+                MemcachedRegionSettingsUtils.getFullClearIndexKeyPrefix(settings));
     }
     
     /**
-     * Clear functionality is disabled by default.
-     * Read this class's javadoc for more detail.
+     * {@inheritDoc}<br>
+     * If clear functionality is disabled for this region it will always
+     * return <code>false</code>.
      *
-     * @throws CacheException
-     * @see com.googlecode.hibernate.memcached.MemcachedCache
+     * @throws CacheException if something went wrong in the cache
+     * @see ClearStrategy
      */
     @Override
     public boolean clear() throws CacheException {
-        if (regionProperties.isClearSupported()) {
-            client.incr(clearIndexKey, 1, 1);
-            return true;
+        if (settings.isClearSupported()) {
+            return client.incr(encodedClearIndexKey, 1, 1) != -1;
         }
         return false;
     }
 
-	@Override
-    public long getClearIndex() {
-        long index = 0;
-
-        if (regionProperties.isClearSupported()) {
-            Object value = client.get(clearIndexKey);
+    /**
+     * {@inheritDoc}<br>
+     * If clear functionality is disabled for this region it will always
+     * return <code>0</code>.
+     *
+     * @throws CacheException if something went wrong in the cache
+     * @see ClearStrategy
+     */
+    @Override
+    public long getClearIndex() throws CacheException {
+        if (settings.isClearSupported()) {
+            Object value = client.get(encodedClearIndexKey);
+            
             if (value != null) {
                 if (value instanceof String) {
-                    index = Long.valueOf((String) value);
+                    return Long.valueOf((String) value);
                 } else if (value instanceof Long) {
-                    index = (Long) value;
+                    return (Long) value;
                 } else {
-                    throw new IllegalArgumentException(
-                            "Unsupported type [" + value.getClass() + "] found for clear index at cache key [" + clearIndexKey + "]");
+                    throw new IllegalArgumentException(String.format(
+                        "Unsupported type [%s] found for clear index at cache key [%s]",
+                        value.getClass(), encodedClearIndexKey));
                 }
             }
         }
 
-        return index;
+        return 0;
     }
 
 }

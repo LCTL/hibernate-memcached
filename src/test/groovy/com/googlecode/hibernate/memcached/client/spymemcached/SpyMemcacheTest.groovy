@@ -1,7 +1,6 @@
 package com.googlecode.hibernate.memcached.client.spymemcached
 
 import com.googlecode.hibernate.memcached.BaseTestCase
-import com.googlecode.hibernate.memcached.MemcachedCache
 import net.spy.memcached.AddrUtil
 import net.spy.memcached.MemcachedClient
 
@@ -10,7 +9,7 @@ import net.spy.memcached.MemcachedClient
  * @author Ray Krueger
  */
 class SpyMemcacheTest extends BaseTestCase {
-
+/*
     MemcachedCache cache
     MemcachedClient client
 
@@ -38,5 +37,5 @@ class SpyMemcacheTest extends BaseTestCase {
         Thread.sleep(100)
         assertNull(cache.get("test"))
     }
-
+*/
 }
