@@ -21,11 +21,9 @@ To [enable][1] caching in your application you must [configure][5] Hibernate
 
   * Example config:  
 
-    ``
-    <property name="hibernate.cache.provider_class">com.googlecode.hibernate.memcached.MemcachedRegionFactory</property>  
-    <property name="hibernate.cache.use_second_level_cache">true</property>  
-    <property name="hibernate.cache.use_query_cache">true</property>  
-    ``
+    ``<property name="hibernate.cache.provider_class">com.googlecode.hibernate.memcached.MemcachedRegionFactory</property>``  
+    ``<property name="hibernate.cache.use_second_level_cache">true</property>``  
+    ``<property name="hibernate.cache.use_query_cache">true</property>``  
 	
 To enable caching of a particular entity use Hibernates [@Cache][6] annotation (or the [*cache* mapping element][7]).
 
@@ -36,16 +34,14 @@ region-wide properties (See MemcachedRegionProperties), and client-wide properti
 
   * Example config:
   
-    ``  
-    <property name="hibernate.memcached.memcacheClientFactory">com.googlecode.hibernate.memcached.client.spymemcached.SpyMemcacheClientFactory</property>  
-    <property name="hibernate.memcached.cacheTimeSeconds">300</property>  
-    <property name="hibernate.memcached.clearSupported">fase</property>  
-    <property name="hibernate.memcached.dogpilePrevention">false</property>  
-    <property name="hibernate.memcached.keyStrategy">com.googlecode.hibernate.memcached.strategy.key.ToStringKeyStrategy</property>  
-    <property name="hibernate.memcached.keyEncodingStrategy">com.googlecode.hibernate.memcached.strategy.key.encoding.Sha1KeyEncodingStrategy</property>  
-    <property name="hibernate.memcached.[region-name].cacheTimeSeconds">500</property>  
-    <property name="hibernate.memcached.servers">localhost:11211</property>  
-    ``  
+    ``<property name="hibernate.memcached.memcacheClientFactory">com.googlecode.hibernate.memcached.client.spymemcached.SpyMemcacheClientFactory</property>``  
+    ``<property name="hibernate.memcached.cacheTimeSeconds">300</property>``  
+    ``<property name="hibernate.memcached.clearSupported">fase</property>``  
+    ``<property name="hibernate.memcached.dogpilePrevention">false</property>``  
+    ``<property name="hibernate.memcached.keyStrategy">com.googlecode.hibernate.memcached.strategy.key.ToStringKeyStrategy</property>``  
+    ``<property name="hibernate.memcached.keyEncodingStrategy">com.googlecode.hibernate.memcached.strategy.key.encoding.Sha1KeyEncodingStrategy</property>``  
+    ``<property name="hibernate.memcached.[region-name].cacheTimeSeconds">500</property>``  
+    ``<property name="hibernate.memcached.servers">localhost:11211</property>``    
 
 ## Help
 
