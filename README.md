@@ -1,60 +1,75 @@
 # Hibernate-memcached
-A library for using Memcached as a second level distributed cache in Hibernate.
 
-  * Based on the excellent spymemcached client
-  * Includes support for the Whalin (danga) memcached client
-  * Supports entity and query caching.
+A library for using Memcached as a [second level cache][1] in Hibernate.
 
-# Help
-If you have any questions, or just want to drop a line to say it's working great :) use the [google-group](http://groups.google.com/group/hibernate-memcached).
+  * Compatible with [Hibernate 4.1.5.SP1][2]
+  
+## Supported Clients
 
-Please note that this is an open source project. I work on it when I can and I implement what I feel like. I am volunteering my own free time for my own amusement.
+  * [spymemcached 2.8.1][3] (the default client)
+  * [danga (Whalin) 2.0.1][4] (not provided)
+  
 
-# Versions
-## 1.5
-  * Compatible with hibernate 4.
+## Notes
+
+  * Supports entity and query caching
+  * Does not support Natural keys or the Transactional CacheConcurrencyStrategy
+
+## Usage
+
+To [enable][1] caching in your application you must [configure][5] Hibernate
+
+  * Example config:  
+
+    ``
+    <property name="hibernate.cache.provider_class">com.googlecode.hibernate.memcached.MemcachedRegionFactory</property>  
+    <property name="hibernate.cache.use_second_level_cache">true</property>  
+    <property name="hibernate.cache.use_query_cache">true</property>  
+    ``
+	
+To enable caching of a particular entity use Hibernates [@Cache][6] annotation (or the [*cache* mapping element][7]).
+
+To [enable][8] caching of a particular query make sure it is cacheable [``org.hibernate.Query.setCacheable(true)``][9].
+
+Additionaly, this implemenation supports three types of properties, cache-wide properties (See MemcachedProperties),
+region-wide properties (See MemcachedRegionProperties), and client-wide properties (See SpyMemcachedProperties or DangaMemcacheClientFactory)
+
   * Example config:
+  
+    ``  
+    <property name="hibernate.memcached.memcacheClientFactory">com.googlecode.hibernate.memcached.client.spymemcached.SpyMemcacheClientFactory</property>  
+    <property name="hibernate.memcached.cacheTimeSeconds">300</property>  
+    <property name="hibernate.memcached.clearSupported">fase</property>  
+    <property name="hibernate.memcached.dogpilePrevention">false</property>  
+    <property name="hibernate.memcached.keyStrategy">com.googlecode.hibernate.memcached.strategy.key.ToStringKeyStrategy</property>  
+    <property name="hibernate.memcached.keyEncodingStrategy">com.googlecode.hibernate.memcached.strategy.key.encoding.Sha1KeyEncodingStrategy</property>  
+    <property name="hibernate.memcached.[region-name].cacheTimeSeconds">500</property>  
+    <property name="hibernate.memcached.servers">localhost:11211</property>  
+    ``  
 
-    ``<property name="hibernate.cache.region.factory_class">com.googlecode.hibernate.memcached.MemcachedRegionFactory</property>``
-    ``<property name="hibernate.memcached.operationTimeout">5000</property>``
-    ``<property name="hibernate.memcached.connectionFactory">KetamaConnectionFactory</property>``
-    ``<property name="hibernate.memcached.hashAlgorithm">HashAlgorithm.FNV1_64_HASH</property>``
+## Help
 
-## 1.3
-  * [HashCodeKeyStrategy][1] [StringKeyStrategy][2] are now both deprecated.
-  * [Sha1KeyStrategy][3] is now the default strategy.
-  * [Md5KeyStrategy][4] and [Sha1KeyStrategy][3] both digest the entire combined key now (region, clear index, key)
-  * [Md5KeyStrategy][4] and [Sha1KeyStrategy][3] have been re-implemented to hash both the toString() and hashCode() values
-    of the Hibernate query key object. This should eliminate collisions when using hashCode() alone. 
-    [Issue 22](http://code.google.com/p/hibernate-memcached/issues/detail?id=22).
-  * [HashCodeKeyStrategy][1] [StringKeyStrategy][2] will throw exceptions now if the key length is greater than 250.
+If you have any questions, or just want to drop a line to say it's working great :) use the [google-group][10].
 
-As a result of these changes hibernate-memcached will miss on all cache requests upon upgrading to this version. This
-is due to the switch to Sha1KeyStrategy as the default. Hibernate-memcached will now generate different keys for the
-same data you were caching previously. Essentially, your cache will appear empty to Hibernate.
+Please note that this is an open source project. I work on it when I can and I 
+implement what I feel like. I am volunteering my own free time for my own amusement.
 
-Also, as a result of these changes, 1.3 may not be binary compatible with any subclass hacks you may have written that
-extend HashCodeKeyStrategy, StringKeyStrategy, Md5KeyStrategy, or Sha1KeyStrategy. Note that the KeyStrategy interface 
-and AbstractKeyStrategy have not changed at all. If you implemented/extended those directly you're fine.
-
-  * Patch from @burtbeckwith to allow for memcached authentication via the spymemcached client.
-    This can be specified using "hibernate.memcached.username" and "hibernate.memcached.password"
-
-## 1.2.2
-  * Patch from ddlatham to allow the spymemcached library to be put 
-    into daemon mode. This is accomplished by setting 
-    hibernate.memcached.daemonMode to true. 
-  * Updated the maven pom to pull in spymemcached 2.4.2 by default. 
-
-# Note on Patches/Pull Requests
+## Patches/Pull Request FAQ
 
   * Fork the project.
   * Make your feature addition or bug fix.
   * Add tests for it. This is important so I don't break it in a future version unintentionally.
-  * Commit, do not mess with pom.xml, version, or history. (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
+  * Commit, do not mess with pom.xml, version, or history. (if you want to have your own version, 
+    that is fine but bump version in a commit by itself I can ignore when I pull)
   * Send me a pull request. Bonus points for topic branches.
 
-[1]: hibernate-memcached/blob/master/src/main/java/com/googlecode/hibernate/memcached/HashCodeKeyStrategy.java
-[2]: hibernate-memcached/blob/master/src/main/java/com/googlecode/hibernate/memcached/StringKeyStrategy.java
-[3]: hibernate-memcached/blob/master/src/main/java/com/googlecode/hibernate/memcached/Sha1KeyStrategy.java
-[4]: hibernate-memcached/blob/master/src/main/java/com/googlecode/hibernate/memcached/Md5KeyStrategy.java
+[1]:  http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html/ch20.html#performance-cache
+[2]:  http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html/
+[3]:  https://code.google.com/p/spymemcached/
+[4]:  https://github.com/gwhalin/Memcached-Java-Client/wiki
+[5]:  http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html/ch03.html#configuration-cache-properties
+[6]:  http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html/ch20.html#example-cache-annotation-with-attributes
+[7]:  http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html/ch20.html#example-hibernate-cache-mapping-element
+[8]:  http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html/ch20.html#performance-querycache-enable
+[9]:  http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html/ch20.html#performance-querycache-regions
+[10]: http://groups.google.com/group/hibernate-memcached
