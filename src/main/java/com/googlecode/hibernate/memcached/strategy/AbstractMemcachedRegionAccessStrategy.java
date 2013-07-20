@@ -66,7 +66,8 @@ public abstract class AbstractMemcachedRegionAccessStrategy<T extends MemcachedR
 
     @Override
     public SoftLock lockRegion() throws CacheException {
-        throw new UnsupportedOperationException("Region level locking is not supported.");
+        //throw new UnsupportedOperationException("Region level locking is not supported.");
+        return null;
     }
     
     @Override
@@ -77,14 +78,14 @@ public abstract class AbstractMemcachedRegionAccessStrategy<T extends MemcachedR
     
     @Override
     public void removeAll() throws CacheException {
-        if (!getRegion().clear()) {
+        /*if (!getRegion().clear()) {
             throw new UnsupportedOperationException("Region level data eviction is not supported.");
-        }
+        }*/
     }
     
     @Override
     public void unlockRegion(SoftLock lock) throws CacheException {
-        throw new UnsupportedOperationException("Region level locking is not supported.");
+        //throw new UnsupportedOperationException("Region level locking is not supported.");
     }
     
     /**
