@@ -39,6 +39,11 @@
           <name>Spymemcached repository</name>
           <url>http://files.couchbase.com/maven2/</url>
         </repository>
+        <repository>
+            <id>local</id>
+            <name>Local repository</name>
+            <url>file://${project.basedir}/repo</url>
+        </repository>
     </repositories>
 
     <scm>
